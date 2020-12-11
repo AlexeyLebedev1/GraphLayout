@@ -121,6 +121,84 @@ class TestGraph(unittest.TestCase):
         self.assertIn(Vertex(1),self.graph.vertexes[Vertex(4)])
         self.assertIn(Vertex(4),self.graph.vertexes[Vertex(1)])
 
+    def test_get_str(self):
+        g_str={'1':['2','4','6'],
+               '2':['1'],
+               '3':['5','9'],
+               '4':['1'],
+               '5':['3','9'],
+               '6':['1'],
+               '7':['8','10'],
+               '8':['7','10','11'],
+               '9':['3','5'],
+               '10':['7','8','12'],
+               '11':['8','12'],
+               '12':['10','11']}
+        self.assertEqual(g_str,self.graph.get_str())
+
+    def test_vertex_patrition(self):
+        vertexes='((1,2),3),(1,2)'
+        v1,v2='((1,2),3)','(1,2)'
+        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
+
+        vertexes='(1,2),(1,2)'
+        v1,v2='(1,2)','(1,2)'
+        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
+
+        vertexes='(1,2,3),1'
+        v1,v2='(1,2,3)','1'
+        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
+
+        vertexes='1,2'
+        v1,v2='1','2'
+        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
+
+
+class TestGenerateGraph(unittest.TestCase):
+    def setUp(self):
+        self.generator=GenerateGraph()
+
+        self.K3=Graph({Vertex(0):[Vertex(1),Vertex(2)],
+                       Vertex(1):[Vertex(0),Vertex(2)],
+                       Vertex(2):[Vertex(0),Vertex(1)]})
+        
+        self.K23=Graph({Vertex(0):[Vertex(2),Vertex(3),Vertex(4)],
+                        Vertex(1):[Vertex(2),Vertex(3),Vertex(4)],
+                        Vertex(2):[Vertex(0),Vertex(1)],
+                        Vertex(3):[Vertex(0),Vertex(1)],
+                        Vertex(4):[Vertex(0),Vertex(1)]})
+
+        self.C4=Graph({Vertex(0):[Vertex(1),Vertex(3)],
+                       Vertex(1):[Vertex(0),Vertex(2)],
+                       Vertex(2):[Vertex(1),Vertex(3)],
+                       Vertex(3):[Vertex(0),Vertex(2)]})
+
+        self.P4=Graph({Vertex(0):[Vertex(1)],
+                       Vertex(1):[Vertex(0),Vertex(2)],
+                       Vertex(2):[Vertex(1),Vertex(3)],
+                       Vertex(3):[Vertex(2)]})
+
+        self.O4=Graph({Vertex(0):[],
+                       Vertex(1):[],
+                       Vertex(2):[],
+                       Vertex(3):[]})
+
+    def testKn(self):
+        self.assertEqual(self.K3,self.generator.Kn(3))
+
+    def testKpq(self):
+        self.assertEqual(self.K23,self.generator.Kpq(2,3))
+
+    def testCn(self):
+        self.assertEqual(self.C4,self.generator.Cn(4))
+
+    def testPn(self):
+        self.assertEqual(self.P4,self.generator.Pn(4))
+
+    def testOn(self):
+        self.assertEqual(self.O4,self.generator.On(4))
+
+
 
 
 if __name__ == '__main__':

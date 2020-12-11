@@ -10,7 +10,7 @@ class GraphGUI():
         self.graph_generator=GenerateGraph()
 
 
-        self.root=root=tk.Tk()
+        self.root=tk.Tk()
         self.root.title('Graph Layout and algorithms')
         self.root.geometry('1020x620+100+50')       
         
@@ -28,6 +28,7 @@ class GraphGUI():
         self.classes_menu.add_command(label='Cn',command=lambda name='Cn':self.create_input_window1(name))
         self.classes_menu.add_command(label='Pn',command=lambda name='Pn':self.create_input_window1(name))
         self.classes_menu.add_command(label='On',command=lambda name='On':self.create_input_window1(name))
+        self.classes_menu.add_command(label='Qn',command=lambda name='Qn':self.create_input_window1(name))
 
         self.main_menu.add_cascade(label='Special graphs',menu=self.classes_menu)
 
@@ -86,6 +87,8 @@ class GraphGUI():
                     self.graph=self.graph_generator.Pn(n)
                 elif type=='On':
                     self.graph=self.graph_generator.On(n)
+                elif type=='Qn':
+                    self.graph=self.graph_generator.Qn(n)
 
                 self.DrawGraph()
 

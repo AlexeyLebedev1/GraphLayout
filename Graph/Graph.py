@@ -34,6 +34,9 @@ class Graph():
             vertexes={}
         self.vertexes=vertexes
 
+    def __eq__(self,other):
+        return self.vertexes==other.vertexes
+
     def get_vertexes(self):
         """Список вершин"""
         return list(self.vertexes.keys())
@@ -65,7 +68,7 @@ class Graph():
 
 
 
-    def Draw(self,root,canvas):
+    def Draw(self,root,canvas,vertex_marking=False):
 
         # mass
         alpha = 1.0
@@ -83,14 +86,16 @@ class Graph():
             new_pos.x=abs(int(new_pos.x))
             new_pos.y=abs(int(new_pos.y))
             canvas.coords(v.id,new_pos.x-5,new_pos.y-5,new_pos.x+5,new_pos.y+5)
-            canvas.coords(text_pos[v],new_pos.x-10,new_pos.y)
+            if vertex_marking:
+                canvas.coords(text_pos[v],new_pos.x-10,new_pos.y)
 
         dp={}
         for v in self.vertexes:
             v.pos=Point(random.random(),random.random())
             dp[v]=Point(0.0,0.0)
             v.id=canvas.create_oval(245, 245, 255, 255, fill="red")
-            text_pos[v]=canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
+            if vertex_marking:
+                text_pos[v]=canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
             move_vertex(v)
 
         def move_line(id,p1,p2):
@@ -164,9 +169,65 @@ class Graph():
         root.mainloop()
 
 
+    def get_str(self):
+        """Возвращает граф как словарь со строковыми ключами и строковомы списками значений"""
+        g={}
+        for v in self.vertexes:
+            adjacent=[]
+            for u in self.vertexes[v]:
+                adjacent.append(str(u.name))
+            g[str(v.name)]=adjacent
+
+        return g
+
+
+    def _vertex_patrition(self,two_vertex_str):
+        """Разбиение веришины графа состоящего из произведение двух графов на две вершины из соответствующих графов"""
+        stack=[]
+        v1,v2='',''
+        for i,s in enumerate(two_vertex_str):
+            if s=='(':
+                stack.append(s)
+
+            if s==')':
+                stack.pop()
+
+            if s==',' and len(stack)==0:
+                v2=two_vertex_str[i+1:]
+                break
+
+            v1+=s
+          
+        return v1,v2
+            
+
+
+    def __mul__(self,other):
+        """Прямое произведение двух графов"""
+        self_str=self.get_str()
+        other_str=other.get_str()
+
+        g={}
+
+        for v in self.vertexes:
+            for u in other.vertexes:
+                vertex_name='('+str(v.name)+','+str(u.name)+')'
+                g[Vertex(vertex_name)]=[]
+        for v in g:
+            for u in g:
+                if v!=u:
+                    x1,y1=self._vertex_patrition(v.name[1:-1])
+                    x2,y2=self._vertex_patrition(u.name[1:-1])
+
+                    if x1==x2 and y1 in other_str[y2] or y1==y2 and x1 in self_str[x2]:
+                        g[v].append(u)
+
+        return Graph(g)
 
 
 class GenerateGraph():
+    """Генерация некоторых специальных графов соответсвующей размерности"""
+
     def Kn(self,n):
         g={}
         for i in range(n):
@@ -225,3 +286,16 @@ class GenerateGraph():
         g[Vertex(n-1)]=[Vertex(n-2)]
 
         return Graph(g)
+
+    def Qn(self,n):
+        if n<1:
+            return Graph()
+        g=self.Pn(2)
+        for i in range(n-1):
+            g*=self.Pn(2)
+
+        return g
+
+
+
+
