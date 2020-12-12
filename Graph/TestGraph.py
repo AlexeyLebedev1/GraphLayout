@@ -136,22 +136,6 @@ class TestGraph(unittest.TestCase):
                '12':['10','11']}
         self.assertEqual(g_str,self.graph.get_str())
 
-    def test_vertex_patrition(self):
-        vertexes='((1,2),3),(1,2)'
-        v1,v2='((1,2),3)','(1,2)'
-        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
-
-        vertexes='(1,2),(1,2)'
-        v1,v2='(1,2)','(1,2)'
-        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
-
-        vertexes='(1,2,3),1'
-        v1,v2='(1,2,3)','1'
-        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
-
-        vertexes='1,2'
-        v1,v2='1','2'
-        self.assertEqual((v1,v2),self.graph._vertex_patrition(vertexes))
 
 
 class TestGenerateGraph(unittest.TestCase):
@@ -182,6 +166,16 @@ class TestGenerateGraph(unittest.TestCase):
                        Vertex(1):[],
                        Vertex(2):[],
                        Vertex(3):[]})
+        
+        self.Q3=Graph({Vertex('000'):[Vertex('001'),Vertex('010'),Vertex('100')],
+                       Vertex('001'):[Vertex('000'),Vertex('011'),Vertex('101')],
+                       Vertex('010'):[Vertex('000'),Vertex('011'),Vertex('110')],
+                       Vertex('011'):[Vertex('001'),Vertex('010'),Vertex('111')],
+                       Vertex('100'):[Vertex('000'),Vertex('101'),Vertex('110')],
+                       Vertex('101'):[Vertex('001'),Vertex('100'),Vertex('111')],
+                       Vertex('110'):[Vertex('010'),Vertex('100'),Vertex('111')],
+                       Vertex('111'):[Vertex('011'),Vertex('101'),Vertex('110')],
+            })
 
     def testKn(self):
         self.assertEqual(self.K3,self.generator.Kn(3))
@@ -198,7 +192,8 @@ class TestGenerateGraph(unittest.TestCase):
     def testOn(self):
         self.assertEqual(self.O4,self.generator.On(4))
 
-
+    def testQn(self):
+        self.assertEqual(self.Q3,self.generator.Qn(3))
 
 
 if __name__ == '__main__':

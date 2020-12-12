@@ -12,7 +12,9 @@ class GraphGUI():
 
         self.root=tk.Tk()
         self.root.title('Graph Layout and algorithms')
-        self.root.geometry('1020x620+100+50')       
+        self.root.geometry('1020x620+100+50') 
+        
+        self.vertex_marking=False #позже попробовать исправить на переменную tk.Intvar и привязать к чек боксу
         
         #canvas for drawing graph
         self.canvas=tk.Canvas(self.root,width=1020,height=620,bg='white')   
@@ -38,6 +40,14 @@ class GraphGUI():
         self.create_menu.add_command(label='List of edges and List of Vertexes')
 
         self.main_menu.add_cascade(label='Create Graph',menu=self.create_menu)
+
+        def check():
+            self.vertex_marking=not self.vertex_marking
+
+        self.options_menu=tk.Menu(self.main_menu,tearoff=0) 
+        self.options_menu.add_checkbutton(label='vertex marking',command=check)
+
+        self.main_menu.add_cascade(label='Options',menu=self.options_menu)
 
         self.root.mainloop()
 
@@ -160,7 +170,7 @@ class GraphGUI():
 
     def DrawGraph(self):
         self.canvas.delete('all')
-        self.graph.Draw(self.root,self.canvas)
+        self.graph.Draw(self.root,self.canvas,self.vertex_marking)
 
 
    

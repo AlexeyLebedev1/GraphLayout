@@ -88,12 +88,18 @@ class Graph():
             canvas.coords(v.id,new_pos.x-5,new_pos.y-5,new_pos.x+5,new_pos.y+5)
             if vertex_marking:
                 canvas.coords(text_pos[v],new_pos.x-10,new_pos.y)
-
+            
         dp={}
+
+        def move_vertex_by_mouse(event,v):
+            if event.x>0 and event.x<canvas.winfo_width() and event.y>0 and event.y<canvas.winfo_height():
+                canvas.coords(v.id,event.x-5,event.y-5,event.x+5,event.y+5)
+
         for v in self.vertexes:
             v.pos=Point(random.random(),random.random())
             dp[v]=Point(0.0,0.0)
             v.id=canvas.create_oval(245, 245, 255, 255, fill="red")
+            canvas.tag_bind(v.id, '<B1-Motion>',lambda event:move_vertex_by_mouse(event,v)) #!!!!
             if vertex_marking:
                 text_pos[v]=canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
             move_vertex(v)
@@ -170,7 +176,7 @@ class Graph():
 
 
     def get_str(self):
-        """Возвращает граф как словарь со строковыми ключами и строковомы списками значений"""
+        """Возвращает граф как словарь со строковыми ключами и строковыми списками значений"""
         g={}
         for v in self.vertexes:
             adjacent=[]
@@ -179,28 +185,7 @@ class Graph():
             g[str(v.name)]=adjacent
 
         return g
-
-
-    def _vertex_patrition(self,two_vertex_str):
-        """Разбиение веришины графа состоящего из произведение двух графов на две вершины из соответствующих графов"""
-        stack=[]
-        v1,v2='',''
-        for i,s in enumerate(two_vertex_str):
-            if s=='(':
-                stack.append(s)
-
-            if s==')':
-                stack.pop()
-
-            if s==',' and len(stack)==0:
-                v2=two_vertex_str[i+1:]
-                break
-
-            v1+=s
-          
-        return v1,v2
             
-
 
     def __mul__(self,other):
         """Прямое произведение двух графов"""
@@ -213,16 +198,40 @@ class Graph():
             for u in other.vertexes:
                 vertex_name='('+str(v.name)+','+str(u.name)+')'
                 g[Vertex(vertex_name)]=[]
+
+
+
+        def vertex_patrition(two_vertex_str):
+            """Разбиение веришины графа состоящего из произведение двух графов на две вершины из соответствующих графов"""
+            stack=[]
+            v1,v2='',''
+            for i,s in enumerate(two_vertex_str):
+                if s=='(':
+                    stack.append(s)
+
+                if s==')':
+                    stack.pop()
+
+                if s==',' and len(stack)==0:
+                    v2=two_vertex_str[i+1:]
+                    break
+
+                v1+=s
+          
+            return v1,v2
+
         for v in g:
             for u in g:
                 if v!=u:
-                    x1,y1=self._vertex_patrition(v.name[1:-1])
-                    x2,y2=self._vertex_patrition(u.name[1:-1])
+                    x1,y1=vertex_patrition(v.name[1:-1])        
+                    x2,y2=vertex_patrition(u.name[1:-1])
 
                     if x1==x2 and y1 in other_str[y2] or y1==y2 and x1 in self_str[x2]:
                         g[v].append(u)
 
         return Graph(g)
+
+
 
 
 class GenerateGraph():
@@ -293,8 +302,30 @@ class GenerateGraph():
         g=self.Pn(2)
         for i in range(n-1):
             g*=self.Pn(2)
+        
+        #изменяем имена вершин в бинарные числа 
+        g_str=g.get_str()
+        names=g_str.keys()
+        new_names=[]
+        for name in names:
+            new_name=''
+            for ch in name:
+                if ch=='0'or ch=='1':
+                    new_name+=ch
 
-        return g
+            new_names.append(new_name)
+
+        binary_g={}
+        old_names=g_str.keys()
+        for name_new,name in zip(new_names,old_names):
+            adjacent_names=[]
+            for next_name,old_name in zip(new_names,old_names):
+                if old_name in g_str[name]:
+                    adjacent_names.append(Vertex(next_name))
+
+            binary_g[Vertex(name_new)]=adjacent_names
+
+        return Graph(binary_g)
 
 
 
