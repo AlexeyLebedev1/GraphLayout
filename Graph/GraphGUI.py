@@ -61,13 +61,15 @@ class GraphGUI():
             p_lbl=tk.Label(input_window1,text='p',bg='white')
             p_lbl.grid(row=0,column=0,padx=3,pady=3,sticky='E') 
 
-            p_val=tk.Spinbox(input_window1,from_= 0, to = 50, width = 5)
+            var = tk.IntVar(value=2) #initial value
+            p_val=tk.Spinbox(input_window1,from_= 1, to = 50, width = 5,textvariable=var)
             p_val.grid(row=0,column=1,padx=3,pady=3)
 
             q_lbl=tk.Label(input_window1,text='q',bg='white')
             q_lbl.grid(row=0,column=2,padx=3,pady=3)
 
-            q_val=tk.Spinbox(input_window1,from_= 0, to = 50, width = 5)
+            var = tk.IntVar(value=3) #initial value
+            q_val=tk.Spinbox(input_window1,from_= 1, to = 50, width = 5,textvariable=var)
             q_val.grid(row=0,column=3,padx=3,pady=3)
 
             def btnDraw_event():
@@ -83,7 +85,8 @@ class GraphGUI():
             n_lbl=tk.Label(input_window1,text='n',bg='white')
             n_lbl.grid(row=0,column=0,padx=3,pady=3,sticky='E') 
 
-            n_val=tk.Spinbox(input_window1,from_= 0, to = 50, width = 5)
+            var = tk.IntVar(value=3) #initial value
+            n_val=tk.Spinbox(input_window1,from_= 1, to = 50, width = 5,textvariable=var)
             n_val.grid(row=0,column=1,padx=3,pady=3)
         
             def btnDraw_event():

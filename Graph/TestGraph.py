@@ -56,6 +56,7 @@ class TestVertex(unittest.TestCase):
         self.assertEqual(self.name,self.vertex.name)
         self.assertEqual(Point(0,0),self.vertex.pos)
         self.assertEqual(None,self.vertex.id)
+        self.assertEqual(None,self.vertex.name_id)
     
     def test_eq(self):
         tmp=Vertex(self.vertex.name)
@@ -135,6 +136,9 @@ class TestGraph(unittest.TestCase):
                '11':['8','12'],
                '12':['10','11']}
         self.assertEqual(g_str,self.graph.get_str())
+
+    def test_get_incident_edges(self):
+        self.assertEqual(self.edges_list[:3],self.graph.get_incident_edges(Vertex(1)))
 
 
 
