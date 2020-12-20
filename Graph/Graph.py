@@ -93,7 +93,7 @@ class Graph():
 
     def Draw(self,root,canvas,vertex_marking=False):
 
-        #parametrs
+        #параметры
         alpha = 1.0
         beta = .0001
         k = 1.0
@@ -109,7 +109,7 @@ class Graph():
             if vertex_marking:
                 canvas.coords(v.name_id,new_pos.x-10,new_pos.y)
             
-        dp={}    #disposition 
+        dp={}    #смещение
         edges=[]  
 
         def move_line(id,v,u):
@@ -167,7 +167,7 @@ class Graph():
             return d*const
 
         def move():
-            Ek=Point(0.0,0.0)
+            Ek=Point(0.0,0.0)           #kinetic energy
             for v in self.vertexes:
                 F=Point(0.0,0.0)
                 for u in self.vertexes:
