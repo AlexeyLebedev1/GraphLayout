@@ -93,6 +93,8 @@ class Graph():
 
     def Draw(self,root,canvas,vertex_marking=False):
 
+        #-----------
+
         #параметры
         alpha = 1.0
         beta = .0001
