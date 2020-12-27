@@ -29,5 +29,10 @@ class Point():
     def __truediv__(self,num):
         """Деление на константу"""
         return Point(self.x/num,self.y/num)
+    
+    def __abs__(self):
+        return self.length()
+    
+
 
 
