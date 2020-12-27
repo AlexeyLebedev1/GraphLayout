@@ -1,5 +1,6 @@
 from Point import Point
 import random
+import math
 
 
 class Vertex():
@@ -91,114 +92,116 @@ class Graph():
                 self.vertexes[edge[1]].append(edge[0])
 
 
-    def Draw(self,root,canvas,vertex_marking=False):
+    def floyd(self,length=200):
+        """Нахождение матрицы расстояний с помощью алгоритма флойда"""
 
-        #параметры
-        alpha = 1.0
-        beta = .0001
-        k = 1.0
-        eta = .99
-        delta_t = .01
+        D=[]
+        for i,v in enumerate(self.vertexes):
+            row=[]
+            for j,u in enumerate(self.vertexes):
+                if i==j:
+                    row.append(0)
+                elif u in self.vertexes[v]:
+                    row.append(length)
+                else:
+                    row.append(math.inf)
+
+            D.append(row)
+
+        n=len(self.vertexes.keys())
+        for k in range(n):
+            for i in range(n):
+                for j in range(n):
+                    if D[i][k]<math.inf and D[k][j]<math.inf:
+                        D[i][j]=min(D[i][j],D[i][k]+D[k][j])
+
+        return D
+
+
+    def Draw(self,root,canvas,vertex_marking=False,rad=5):
+
+        w=canvas.winfo_width()
+        h=canvas.winfo_height()
+
+        edges=[]
 
         def move_vertex(v):
-            new_pos=v.pos*500
-            new_pos.x=abs(int(new_pos.x))
-            new_pos.y=abs(int(new_pos.y))
-            canvas.coords(v.id,new_pos.x-5,new_pos.y-5,new_pos.x+5,new_pos.y+5)
+            canvas.coords(v.id,v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad)
             canvas.tag_raise(v.id)
             if vertex_marking:
-                canvas.coords(v.name_id,new_pos.x-10,new_pos.y)
-            
-        dp={}    #смещение
-        edges=[]  
+                canvas.coords(v.name_id,v.pos.x-2*rad,v.pos.y)
 
-        def move_line(id,v,u):
-     
-            v_location=canvas.coords(v.id)
-            p1=Point(v_location[0]+5,v_location[1]+5)
-
-            u_location=canvas.coords(u.id)
-            p2=Point(u_location[0]+5,u_location[1]+5)
-
-            canvas.coords(id,p1.x,p1.y,p2.x,p2.y)
+        def move_edge(id,v,u):
+            canvas.coords(id,v.pos.x,v.pos.y,u.pos.x,u.pos.y)
 
         def move_vertex_by_mouse(event,v):
-            pos=0
-            if event.x>0 and event.x<canvas.winfo_width() and event.y>0 and event.y<canvas.winfo_height():
-                canvas.coords(v.id,event.x-5,event.y-5,event.x+5,event.y+5)
+            if event.x>0 and event.x<w and event.y>0 and event.y<h:
+                canvas.coords(v.id,event.x-rad,event.y-rad,event.x+rad,event.y+rad)
+
+                v.pos.x=event.x
+                v.pos.y=event.y
+
                 canvas.tag_raise(v.id)
+
                 if vertex_marking:
-                    canvas.coords(v.name_id,event.x-10,event.y)
+                    canvas.coords(v.name_id,event.x-2*rad,event.y)
 
                 for i,[x,y] in enumerate(self.get_edges()):
                     if[x,y] in self.get_incident_edges(v):
-                        move_line(edges[i],x,y)
+                        move_edge(edges[i],x,y)
 
 
         for v in self.vertexes:
-            v.pos=Point(random.random(),random.random())
-            dp[v]=Point(0.0,0.0)
-            v.id=canvas.create_oval(245, 245, 255, 255, fill="red")
+            v.pos=Point(random.randint(rad,w-rad),random.randint(rad,h-rad))
+            v.id=canvas.create_oval(v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad,fill="red")
             canvas.tag_bind(v.id, '<B1-Motion>',lambda event,vertex=v:move_vertex_by_mouse(event,vertex)) 
             if vertex_marking:
                 v.name_id=canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
             move_vertex(v)
 
-
+        
         for [v,u] in self.get_edges():
             id=canvas.create_line(0,0,0,0)
             edges.append(id)
-            move_line(id,v,u)
-    
+            move_edge(id,v,u)
 
-        def Coulomb_force(p1,p2):    #repulsive force
-            d=p2-p1
-            if d.length()==0:
-                const=0
-            else:
-                const=beta/(d.length()**3)
-
-            return d*(-const)
-
-        def Hooke_force(p1, p2, delta=0.1): #attractive force
-            d=p2-p1
-            dl=d.length()-delta
-            const=k*dl/d.length()
-            return d*const
+        D=self.floyd()
+        
 
         def move():
-            Ek=Point(0.0,0.0)           #kinetic energy
-            for v in self.vertexes:
-                F=Point(0.0,0.0)
-                for u in self.vertexes:
-                    if u in self.vertexes[v]:
-                        Fuv=Hooke_force(v.pos,u.pos)
-                    else:
-                        Fuv=Coulomb_force(v.pos,u.pos)
-                    F+=Fuv
+            find_place=0
+            for i,v in enumerate(self.vertexes):
+                dx,dy=0,0
+                for j,u in enumerate(self.vertexes):
+                    if u!=v:
+                        dx+=u.pos.x+D[i][j]*(v.pos.x-u.pos.x)/abs(v.pos-u.pos)
+                        dy+=u.pos.y+D[i][j]*(v.pos.y-u.pos.y)/abs(v.pos-u.pos)
+                
+                new_place=Point(dx/(len(D)-1),dy/(len(D)-1))
+                if abs(new_place-v.pos)<0.0001:
+                    find_place+=1
+                v.pos=new_place
 
-                dp[v].x=(dp[v].x+alpha*F.x*delta_t)*eta
-                dp[v].y=(dp[v].y+alpha*F.y*delta_t)*eta
-
-                Ek+=Point(dp[v].x**2,dp[v].y**2)*alpha
-
-            energy=float(Ek.length())
 
             for v in self.vertexes:
-                v.pos+=dp[v]*delta_t
                 move_vertex(v)
 
             for [v,u],id in zip(self.get_edges(),edges):
-                move_line(id,v,u)
+                move_edge(id,v,u)
 
-
-            if energy>=0.000001:
+            if find_place<len(self.vertexes):
                 root.after(1, move)
+            else:
+                print("it's over")
 
 
         root.after(1,move)
 
-        root.mainloop()
+        
+
+
+
+
 
 
     def get_str(self):
@@ -325,35 +328,39 @@ class GenerateGraph():
         g[vertexes[n-1]]=[vertexes[n-2]]
         return Graph(g)
 
-    def Qn(self,n):
+    def Qn(self,n,vertex_marking=False):
         if n<1:
             return Graph()
         g=self.Pn(2)
         for i in range(n-1):
             g*=self.Pn(2)
         
+        if vertex_marking:
         #изменяем имена вершин в бинарные числа 
-        g_str=g.get_str()
-        old_names=g_str.keys()
-        new_names=[]
-        for name in old_names:
-            new_name=''
-            for ch in name:
-                if ch=='0'or ch=='1':
-                    new_name+=ch
+            g_str=g.get_str()
+            old_names=g_str.keys()
+            new_names=[]
+            for name in old_names:
+                new_name=''
+                for ch in name:
+                    if ch=='0'or ch=='1':
+                        new_name+=ch
 
-            new_names.append(new_name)
+                new_names.append(new_name)
 
-        binary_g={}
-        vertexes=[Vertex(new_name) for new_name in new_names]
-        for v in vertexes:
-            binary_g[v]=[]
-        for v,old_name in zip(vertexes,old_names):
-            for u,name in zip(vertexes,old_names):
-                if name in g_str[old_name]:
-                    binary_g[v].append(u)
+            binary_g={}
+            vertexes=[Vertex(new_name) for new_name in new_names]
+            for v in vertexes:
+                binary_g[v]=[]
+            for v,old_name in zip(vertexes,old_names):
+                for u,name in zip(vertexes,old_names):
+                    if name in g_str[old_name]:
+                        binary_g[v].append(u)
 
-        return Graph(binary_g)
+            return Graph(binary_g)
+
+        return g
+
 
 
 
