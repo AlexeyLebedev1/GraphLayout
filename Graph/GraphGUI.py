@@ -21,6 +21,7 @@ class GraphGUI():
         self.edge_color=tk.StringVar(value="black")
         self.vertex_rad=tk.IntVar(value=5)
         self.edges_length=tk.IntVar(value=100)
+        self.edges_width=tk.IntVar(value=1)
         
         #canvas for drawing graph
         self.canvas=tk.Canvas(self.root,width=1020,height=620,bg='white')   
@@ -215,7 +216,10 @@ class GraphGUI():
         tk.Spinbox(settings_window,from_=1,to=15,textvariable=self.vertex_rad).grid(row=2,column=2,padx=3,pady=3,sticky='W')
 
         tk.Label(settings_window,text='Edges length: ',bg='white').grid(row=3,column=2,padx=3,pady=3,sticky='W')
-        tk.Spinbox(settings_window,from_=50,increment=10,to=300,textvariable=self.edges_length).grid(row=4,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=10,increment=10,to=300,textvariable=self.edges_length).grid(row=4,column=2,padx=3,pady=3,sticky='W')
+
+        tk.Label(settings_window,text='Edges width: ',bg='white').grid(row=5,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=1,to=10,textvariable=self.edges_width).grid(row=6,column=2,padx=3,pady=3,sticky='W')
 
 
         last_c,last_r=settings_window.grid_size()
@@ -232,7 +236,8 @@ class GraphGUI():
     def DrawGraph(self):
         self.canvas.delete('all')
         self.graph.Draw(self.root,self.canvas,vertex_marking=int(self.vertex_marking.get()),color_v=self.vertex_color.get(),
-                        color_e=self.edge_color.get(),rad=self.vertex_rad.get(),edges_length=int(self.edges_length.get()))
+                        color_e=self.edge_color.get(),rad=self.vertex_rad.get(),
+                        edges_length=int(self.edges_length.get()),edges_width=int(self.edges_width.get()))
 
 
    

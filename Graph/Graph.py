@@ -136,7 +136,7 @@ class Graph():
         return W
 
 
-    def Draw(self,root,canvas,vertex_marking=False,rad=5,edges_length=100,color_v="red",color_e="black"):    
+    def Draw(self,root,canvas,vertex_marking=False,rad=5,edges_length=100,color_v="red",color_e="black",edges_width=1):    
 
         # rad-радиус вершины, speed - задержка в мс ,color_v - цвет вершин, color_e - цвет рёбер
       
@@ -182,7 +182,7 @@ class Graph():
 
         
         for [v,u] in self.get_edges():
-            id=canvas.create_line(0,0,0,0,fill=color_e)
+            id=canvas.create_line(0,0,0,0,fill=color_e,width=edges_width)
             edges.append(id)
             move_edge(id,v,u)
 
