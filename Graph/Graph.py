@@ -92,7 +92,9 @@ class Graph():
                 self.vertexes[edge[1]].append(edge[0])
 
 
-    def floyd(self,length=200):
+
+ 
+    def floyd(self,length=100):                                             #length - длинна рёбер 
         """Нахождение матрицы расстояний с помощью алгоритма флойда"""
 
         D=[]
@@ -118,7 +120,26 @@ class Graph():
         return D
 
 
-    def Draw(self,root,canvas,vertex_marking=False,rad=5):
+    def GetWeightMatrix(self,D):
+        """Матрица весов для каждой вершины"""
+        W=[]
+        for i in range(len(D)):
+            row=[]
+            for j in range(len(D)):
+                if i!=j:
+                    row.append(D[i][j]**-2)
+                else:
+                    row.append(1)
+
+            W.append(row)
+
+        return W
+
+
+    def Draw(self,root,canvas,vertex_marking=False,rad=5,edges_length=100,color_v="red",color_e="black"):    
+
+        # rad-радиус вершины, speed - задержка в мс ,color_v - цвет вершин, color_e - цвет рёбер
+      
 
         w=canvas.winfo_width()
         h=canvas.winfo_height()
@@ -153,7 +174,7 @@ class Graph():
 
         for v in self.vertexes:
             v.pos=Point(random.randint(rad,w-rad),random.randint(rad,h-rad))
-            v.id=canvas.create_oval(v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad,fill="red")
+            v.id=canvas.create_oval(v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad,fill=color_v)
             canvas.tag_bind(v.id, '<B1-Motion>',lambda event,vertex=v:move_vertex_by_mouse(event,vertex)) 
             if vertex_marking:
                 v.name_id=canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
@@ -161,25 +182,37 @@ class Graph():
 
         
         for [v,u] in self.get_edges():
-            id=canvas.create_line(0,0,0,0)
+            id=canvas.create_line(0,0,0,0,fill=color_e)
             edges.append(id)
             move_edge(id,v,u)
 
-        D=self.floyd()
-        
+        D=self.floyd(edges_length)
+        W=self.GetWeightMatrix(D)
+
+        def stress(v,i):
+            dx,dy=0,0
+            w_sum=0.0
+            for j,u in enumerate(self.vertexes):
+                if u!=v:
+                    w_sum+=W[i][j]
+                    try:
+                        dx+=W[i][j]*(u.pos.x+D[i][j]*(v.pos.x-u.pos.x)/abs(v.pos-u.pos))
+                        dy+=W[i][j]*(u.pos.y+D[i][j]*(v.pos.y-u.pos.y)/abs(v.pos-u.pos))
+                    except ZeroDivisionError:
+                        dx+=W[i][j]*(u.pos.x+D[i][j]*(v.pos.x-u.pos.x)/0.00001)
+                        dy+=W[i][j]*(u.pos.y+D[i][j]*(v.pos.y-u.pos.y)/0.00001)
+
+            return Point(dx/w_sum,dy/w_sum)
+
 
         def move():
             find_place=0
             for i,v in enumerate(self.vertexes):
-                dx,dy=0,0
-                for j,u in enumerate(self.vertexes):
-                    if u!=v:
-                        dx+=u.pos.x+D[i][j]*(v.pos.x-u.pos.x)/abs(v.pos-u.pos)
-                        dy+=u.pos.y+D[i][j]*(v.pos.y-u.pos.y)/abs(v.pos-u.pos)
-                
-                new_place=Point(dx/(len(D)-1),dy/(len(D)-1))
+                new_place=stress(v,i)
+                 
                 if abs(new_place-v.pos)<0.0001:
                     find_place+=1
+
                 v.pos=new_place
 
 
@@ -192,7 +225,7 @@ class Graph():
             if find_place<len(self.vertexes):
                 root.after(1, move)
             else:
-                print("it's over")
+                print("stop drawing")
 
 
         root.after(1,move)

@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import colorchooser
 from Graph import Graph,GenerateGraph,Vertex
 
 
@@ -11,10 +12,15 @@ class GraphGUI():
 
 
         self.root=tk.Tk()
-        self.root.title('Graph Layout and algorithms')
+        self.root.title('Graph Layout and Algorithms')
         self.root.geometry('1020x620+100+50') 
         
-        self.vertex_marking=False #позже попробовать исправить на переменную tk.Intvar и привязать к чек боксу
+        #parametrs for graph drawing
+        self.vertex_marking=tk.BooleanVar()   
+        self.vertex_color=tk.StringVar(value="red")
+        self.edge_color=tk.StringVar(value="black")
+        self.vertex_rad=tk.IntVar(value=5)
+        self.edges_length=tk.IntVar(value=100)
         
         #canvas for drawing graph
         self.canvas=tk.Canvas(self.root,width=1020,height=620,bg='white')   
@@ -31,30 +37,28 @@ class GraphGUI():
         self.classes_menu.add_command(label='Pn',command=lambda name='Pn':self.create_input_window1(name))
         self.classes_menu.add_command(label='On',command=lambda name='On':self.create_input_window1(name))
         self.classes_menu.add_command(label='Qn',command=lambda name='Qn':self.create_input_window1(name))
-
         self.main_menu.add_cascade(label='Special graphs',menu=self.classes_menu)
 
+
+        # ways to init graph
         self.create_menu=tk.Menu(self.main_menu,tearoff=0)
         self.create_menu.add_command(label='Adjacency list',command=self.create_input_window2)
         self.create_menu.add_command(label='Adjacency matrix')
         self.create_menu.add_command(label='List of edges and List of Vertexes')
-
         self.main_menu.add_cascade(label='Create Graph',menu=self.create_menu)
 
-        def check():
-            self.vertex_marking=not self.vertex_marking
 
-        self.options_menu=tk.Menu(self.main_menu,tearoff=0) 
-        self.options_menu.add_checkbutton(label='vertex marking',command=check)
+        # settings
+        self.main_menu.add_command(label="Settings",command=self.create_settings_window)
 
-        self.main_menu.add_cascade(label='Options',menu=self.options_menu)
 
         self.root.mainloop()
 
     def create_input_window1(self,type):
         """Create input window for Graphs: Kn,Cn,Pn,On"""
         input_window1=tk.Toplevel(bg='white',bd=4)
-        input_window1.geometry('+200+200')
+        w,h=self.root.winfo_width()//2,self.root.winfo_height()//2
+        input_window1.geometry('+{}+{}'.format(w,h))
         input_window1.title('')
 
         if type == 'Kp,q':
@@ -101,7 +105,7 @@ class GraphGUI():
                 elif type=='On':
                     self.graph=self.graph_generator.On(n)
                 elif type=='Qn':
-                    self.graph=self.graph_generator.Qn(n)
+                    self.graph=self.graph_generator.Qn(n,self.vertex_marking)
 
                 self.DrawGraph()
 
@@ -119,7 +123,8 @@ class GraphGUI():
     def create_input_window2(self):
         """Create input window for Defining a graph with adjacency lists"""
         input_window2=tk.Toplevel(bg='white',bd=4)
-        input_window2.geometry('+200+200')
+        w,h=self.root.winfo_width()//2,self.root.winfo_height()//2
+        input_window2.geometry('+{}+{}'.format(w,h))
         input_window2.title('')
 
         box = tk.Listbox(input_window2,selectmode='EXTENDED')
@@ -161,6 +166,13 @@ class GraphGUI():
                 s=line.split(',')
                 vertexes=s[0].split(':')+s[1:]
                 g[Vertex(vertexes[0])]=list(Vertex(vertexes[i]) for i in range(1,len(vertexes)))
+             
+            V=list(g.keys())
+            for v in V:
+                v_list=[]
+                for u in g[v]:
+                    v_list.append(V[V.index(u)])
+                g[v]=v_list
 
             self.graph=Graph(g)
             input_window2.destroy()
@@ -169,11 +181,58 @@ class GraphGUI():
            
         btnDraw=tk.Button(btns_frame,text='Draw',command=save_graph)
         btnDraw.pack(fill=tk.X)
+
+    def create_settings_window(self):
+        """Create a window for layout settings"""
+        settings_window=tk.Toplevel(bg='white',bd=4)
+
+        w,h=self.root.winfo_width()//2,self.root.winfo_height()//2
+
+        settings_window.geometry('+{}+{}'.format(w,h))
+        settings_window.title('settings')
+
+        colors_vertex=['red','black','lavender','peach puff','deep sky blue','dark sea green','salmon','SkyBlue1']
+        colors_edges=['black','gray63','thistle2','SlateGray4','azure','lavender','cornflower blue']
+
+        colorVlbl=tk.Label(settings_window,text='Vertexes color: ',bg='white')
+        colorVlbl.grid(row=0,column=0,padx=3,pady=3,sticky='W')
+        for i,color in enumerate(colors_vertex):
+            tk.Radiobutton(settings_window,text=color,variable=self.vertex_color,value=color,bg='white',
+                           selectcolor=color,justify=tk.LEFT).grid(row=i+1,column=0,sticky='W')
+
+        colorElbl=tk.Label(settings_window,text='Edges color: ',bg='white')
+        colorElbl.grid(row=0,column=1,padx=3,pady=3,sticky='W')
+        for i,color in enumerate(colors_edges):
+            tk.Radiobutton(settings_window,text=color,variable=self.edge_color,value=color,bg='white',
+                           selectcolor=color,justify=tk.LEFT).grid(row=i+1,column=1,sticky='W')
+
+
+        tk.Checkbutton(settings_window,text='Vertex marking',variable=self.vertex_marking,
+                       bg='white').grid(row=0,column=2,padx=3,pady=3,sticky='W')
+
+
+        tk.Label(settings_window,text='Vertex radius: ',bg='white').grid(row=1,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=1,to=15,textvariable=self.vertex_rad).grid(row=2,column=2,padx=3,pady=3,sticky='W')
+
+        tk.Label(settings_window,text='Edges length: ',bg='white').grid(row=3,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=50,increment=10,to=300,textvariable=self.edges_length).grid(row=4,column=2,padx=3,pady=3,sticky='W')
+
+
+        last_c,last_r=settings_window.grid_size()
+        tk.Button(settings_window,text='Save',command=settings_window.destroy,
+                  relief=tk.RAISED,width=8).grid(column=last_c,row=last_r,padx=3,pady=3,sticky='W')
+        
+        
+            
+
+
+            
          
 
     def DrawGraph(self):
         self.canvas.delete('all')
-        self.graph.Draw(self.root,self.canvas,self.vertex_marking)
+        self.graph.Draw(self.root,self.canvas,vertex_marking=int(self.vertex_marking.get()),color_v=self.vertex_color.get(),
+                        color_e=self.edge_color.get(),rad=self.vertex_rad.get(),edges_length=int(self.edges_length.get()))
 
 
    
