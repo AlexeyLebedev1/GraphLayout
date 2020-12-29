@@ -1,5 +1,5 @@
 import unittest
-from Graph import Graph,GenerateGraph,Vertex
+from Graph import Graph,GenerateGraph,Vertex,Edge
 from Point import Point
 
 class TestPoint(unittest.TestCase):
@@ -47,6 +47,8 @@ class TestPoint(unittest.TestCase):
         tmp=Point(self.point1.x/2,self.point1.y/2)
         self.assertEqual(tmp,self.point1/2)
 
+
+
 class TestVertex(unittest.TestCase):
     def setUp(self):
         self.name='x'
@@ -83,10 +85,10 @@ class TestGraph(unittest.TestCase):
                Vertex(12):[Vertex(10), Vertex(11)]
                }
         self.graph=Graph(self.vertex_list)
-        self.edges_list=[[Vertex(1),Vertex(2)],[Vertex(1),Vertex(4)],[Vertex(1),Vertex(6)],
-                         [Vertex(3),Vertex(5)],[Vertex(3),Vertex(9)],[Vertex(5),Vertex(9)],
-                         [Vertex(7),Vertex(8)],[Vertex(7),Vertex(10)],[Vertex(8),Vertex(10)],
-                         [Vertex(8),Vertex(11)],[Vertex(10),Vertex(12)],[Vertex(11),Vertex(12)]]
+        self.edges_list=[Edge(Vertex(1),Vertex(2)),Edge(Vertex(1),Vertex(4)),Edge(Vertex(1),Vertex(6)),
+                         Edge(Vertex(3),Vertex(5)),Edge(Vertex(3),Vertex(9)),Edge(Vertex(5),Vertex(9)),
+                         Edge(Vertex(7),Vertex(8)),Edge(Vertex(7),Vertex(10)),Edge(Vertex(8),Vertex(10)),
+                         Edge(Vertex(8),Vertex(11)),Edge(Vertex(10),Vertex(12)),Edge(Vertex(11),Vertex(12))]
 
     def test_init(self):
         """Проверка инициализации графа"""
@@ -200,7 +202,7 @@ class TestGenerateGraph(unittest.TestCase):
         self.assertEqual(self.O4,self.generator.On(4))
 
     def testQn(self):
-        self.assertEqual(self.Q3,self.generator.Qn(3))
+        self.assertEqual(self.Q3,self.generator.Qn(3,True))
 
 
 if __name__ == '__main__':

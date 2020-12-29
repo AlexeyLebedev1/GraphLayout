@@ -29,6 +29,9 @@
     <Compile Include="GraphGUI.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MDSLayout.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Point.py">
       <SubType>Code</SubType>
     </Compile>

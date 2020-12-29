@@ -58,8 +58,8 @@ class Graph():
         edges=[]
         for vertex in self.vertexes:
             for neighbour in self.vertexes[vertex]:
-                if [neighbour,vertex] not in edges:
-                    edges.append([vertex,neighbour])
+                if Edge(neighbour,vertex) not in edges:
+                    edges.append(Edge(vertex,neighbour))
 
         return edges
 
@@ -69,9 +69,9 @@ class Graph():
         pos=list(self.vertexes.keys()).index(v)
         for i,u in enumerate(self.vertexes[v]):
             if i<pos:
-                edges.append([u,v])
+                edges.append(Edge(u,v))
             else:
-                edges.append([v,u])
+                edges.append(Edge(v,u))
 
         return edges
         
@@ -118,123 +118,6 @@ class Graph():
                         D[i][j]=min(D[i][j],D[i][k]+D[k][j])
 
         return D
-
-
-    def GetWeightMatrix(self,D):
-        """Матрица весов для каждой вершины"""
-        W=[]
-        for i in range(len(D)):
-            row=[]
-            for j in range(len(D)):
-                if i!=j:
-                    row.append(D[i][j]**-2)
-                else:
-                    row.append(1)
-
-            W.append(row)
-
-        return W
-
-
-    def Draw(self,root,canvas,vertex_marking=False,rad=5,edges_length=100,color_v="red",color_e="black",edges_width=1):    
-
-        # rad-радиус вершины, speed - задержка в мс ,color_v - цвет вершин, color_e - цвет рёбер
-      
-
-        w=canvas.winfo_width()
-        h=canvas.winfo_height()
-
-        edges=[]
-
-        def move_vertex(v):
-            canvas.coords(v.id,v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad)
-            canvas.tag_raise(v.id)
-            if vertex_marking:
-                canvas.coords(v.name_id,v.pos.x-2*rad,v.pos.y)
-
-        def move_edge(id,v,u):
-            canvas.coords(id,v.pos.x,v.pos.y,u.pos.x,u.pos.y)
-
-        def move_vertex_by_mouse(event,v):
-            if event.x>0 and event.x<w and event.y>0 and event.y<h:
-                canvas.coords(v.id,event.x-rad,event.y-rad,event.x+rad,event.y+rad)
-
-                v.pos.x=event.x
-                v.pos.y=event.y
-
-                canvas.tag_raise(v.id)
-
-                if vertex_marking:
-                    canvas.coords(v.name_id,event.x-2*rad,event.y)
-
-                for i,[x,y] in enumerate(self.get_edges()):
-                    if[x,y] in self.get_incident_edges(v):
-                        move_edge(edges[i],x,y)
-
-
-        for v in self.vertexes:
-            v.pos=Point(random.randint(rad,w-rad),random.randint(rad,h-rad))
-            v.id=canvas.create_oval(v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad,fill=color_v)
-            canvas.tag_bind(v.id, '<B1-Motion>',lambda event,vertex=v:move_vertex_by_mouse(event,vertex)) 
-            if vertex_marking:
-                v.name_id=canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
-            move_vertex(v)
-
-        
-        for [v,u] in self.get_edges():
-            id=canvas.create_line(0,0,0,0,fill=color_e,width=edges_width)
-            edges.append(id)
-            move_edge(id,v,u)
-
-        D=self.floyd(edges_length)
-        W=self.GetWeightMatrix(D)
-
-        def stress(v,i):
-            dx,dy=0,0
-            w_sum=0.0
-            for j,u in enumerate(self.vertexes):
-                if u!=v:
-                    w_sum+=W[i][j]
-                    try:
-                        dx+=W[i][j]*(u.pos.x+D[i][j]*(v.pos.x-u.pos.x)/abs(v.pos-u.pos))
-                        dy+=W[i][j]*(u.pos.y+D[i][j]*(v.pos.y-u.pos.y)/abs(v.pos-u.pos))
-                    except ZeroDivisionError:
-                        dx+=W[i][j]*(u.pos.x+D[i][j]*(v.pos.x-u.pos.x)/0.00001)
-                        dy+=W[i][j]*(u.pos.y+D[i][j]*(v.pos.y-u.pos.y)/0.00001)
-
-            return Point(dx/w_sum,dy/w_sum)
-
-
-        def move():
-            find_place=0
-            for i,v in enumerate(self.vertexes):
-                new_place=stress(v,i)
-                 
-                if abs(new_place-v.pos)<0.0001:
-                    find_place+=1
-
-                v.pos=new_place
-
-
-            for v in self.vertexes:
-                move_vertex(v)
-
-            for [v,u],id in zip(self.get_edges(),edges):
-                move_edge(id,v,u)
-
-            if find_place<len(self.vertexes):
-                root.after(1, move)
-            else:
-                print("stop drawing")
-
-
-        root.after(1,move)
-
-        
-
-
-
-
 
 
     def get_str(self):

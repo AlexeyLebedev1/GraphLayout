@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import colorchooser
 from Graph import Graph,GenerateGraph,Vertex
+from MDSLayout import Parametrs,MDSLayout
+
 
 
 class GraphGUI():
@@ -14,18 +16,15 @@ class GraphGUI():
         self.root=tk.Tk()
         self.root.title('Graph Layout and Algorithms')
         self.root.geometry('1020x620+100+50') 
-        
-        #parametrs for graph drawing
-        self.vertex_marking=tk.BooleanVar()   
-        self.vertex_color=tk.StringVar(value="red")
-        self.edge_color=tk.StringVar(value="black")
-        self.vertex_rad=tk.IntVar(value=5)
-        self.edges_length=tk.IntVar(value=100)
-        self.edges_width=tk.IntVar(value=1)
-        
+
         #canvas for drawing graph
         self.canvas=tk.Canvas(self.root,width=1020,height=620,bg='white')   
         self.canvas.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+        
+        #parametrs for graph drawing
+        self.parametrs=Parametrs()
+
+        self.layout=MDSLayout(self.root,self.canvas,self.parametrs)        
 
         self.main_menu=tk.Menu(self.root,bg='white')                        
         self.root.config(menu=self.main_menu)
@@ -106,7 +105,7 @@ class GraphGUI():
                 elif type=='On':
                     self.graph=self.graph_generator.On(n)
                 elif type=='Qn':
-                    self.graph=self.graph_generator.Qn(n,self.vertex_marking)
+                    self.graph=self.graph_generator.Qn(n,self.parametrs.get_vertex_marking())
 
                 self.DrawGraph()
 
@@ -160,7 +159,7 @@ class GraphGUI():
         btnDel=tk.Button(btns_frame,text='Delete',command=del_Items)
         btnDel.pack(fill=tk.X)
 
-        def save_graph():
+        def save_graph():  ### can make better
             g_str=box.get(0,tk.END)
             g={}
             for line in g_str:
@@ -198,28 +197,28 @@ class GraphGUI():
         colorVlbl=tk.Label(settings_window,text='Vertexes color: ',bg='white')
         colorVlbl.grid(row=0,column=0,padx=3,pady=3,sticky='W')
         for i,color in enumerate(colors_vertex):
-            tk.Radiobutton(settings_window,text=color,variable=self.vertex_color,value=color,bg='white',
+            tk.Radiobutton(settings_window,text=color,variable=self.parametrs.vertex_color,value=color,bg='white',
                            selectcolor=color,justify=tk.LEFT).grid(row=i+1,column=0,sticky='W')
 
         colorElbl=tk.Label(settings_window,text='Edges color: ',bg='white')
         colorElbl.grid(row=0,column=1,padx=3,pady=3,sticky='W')
         for i,color in enumerate(colors_edges):
-            tk.Radiobutton(settings_window,text=color,variable=self.edge_color,value=color,bg='white',
+            tk.Radiobutton(settings_window,text=color,variable=self.parametrs.edge_color,value=color,bg='white',
                            selectcolor=color,justify=tk.LEFT).grid(row=i+1,column=1,sticky='W')
 
 
-        tk.Checkbutton(settings_window,text='Vertex marking',variable=self.vertex_marking,
+        tk.Checkbutton(settings_window,text='Vertex marking',variable=self.parametrs.vertex_marking,
                        bg='white').grid(row=0,column=2,padx=3,pady=3,sticky='W')
 
 
         tk.Label(settings_window,text='Vertex radius: ',bg='white').grid(row=1,column=2,padx=3,pady=3,sticky='W')
-        tk.Spinbox(settings_window,from_=1,to=15,textvariable=self.vertex_rad).grid(row=2,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=1,to=15,textvariable=self.parametrs.vertex_rad).grid(row=2,column=2,padx=3,pady=3,sticky='W')
 
         tk.Label(settings_window,text='Edges length: ',bg='white').grid(row=3,column=2,padx=3,pady=3,sticky='W')
-        tk.Spinbox(settings_window,from_=10,increment=10,to=300,textvariable=self.edges_length).grid(row=4,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=10,increment=10,to=300,textvariable=self.parametrs.edges_length).grid(row=4,column=2,padx=3,pady=3,sticky='W')
 
         tk.Label(settings_window,text='Edges width: ',bg='white').grid(row=5,column=2,padx=3,pady=3,sticky='W')
-        tk.Spinbox(settings_window,from_=1,to=10,textvariable=self.edges_width).grid(row=6,column=2,padx=3,pady=3,sticky='W')
+        tk.Spinbox(settings_window,from_=1,to=10,textvariable=self.parametrs.edges_width).grid(row=6,column=2,padx=3,pady=3,sticky='W')
 
 
         last_c,last_r=settings_window.grid_size()
@@ -235,9 +234,7 @@ class GraphGUI():
 
     def DrawGraph(self):
         self.canvas.delete('all')
-        self.graph.Draw(self.root,self.canvas,vertex_marking=int(self.vertex_marking.get()),color_v=self.vertex_color.get(),
-                        color_e=self.edge_color.get(),rad=self.vertex_rad.get(),
-                        edges_length=int(self.edges_length.get()),edges_width=int(self.edges_width.get()))
+        self.layout.Draw(self.graph)
 
 
    
