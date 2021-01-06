@@ -1,15 +1,18 @@
 from Point import Point
 import random
 import math
+import numpy as np
 
 
 class Vertex():
-    """Вершина графа"""
+    """Graph vertex"""
     def __init__(self,name):
         self.name=name
         self.pos=Point(0,0)
-        self.id=None              #идентификаторы для отрисовки
-        self.name_id=None         
+        self.id=None              #id for drawing on Tkinter canvas
+        self.name_id=None   
+        self.rad=0
+        self.root=False
 
     def __eq__(self,other):
         return self.name==other.name
@@ -27,7 +30,7 @@ class Vertex():
         return str(self.name)
 
 class Edge():
-    """Неориентированное ребро графа"""
+    """Undirected graph edge"""
     def __init__(self,v,u):
         self.v=v
         self.u=u
@@ -38,10 +41,10 @@ class Edge():
     
 
 class Graph():
-    """Неориентированный граф без кратных рёбер и петель"""
+    """Undirected graph without multiple edges and loops"""
 
     def __init__(self,vertexes=None):
-        """vertexes - словарь, ключи-вершины, значения - списки смежных вершин"""
+        """vertexes is dict, keys-vertexes, values- lists of adjacent vertices"""
         if(vertexes==None):
             vertexes={}
         self.vertexes=vertexes
@@ -50,11 +53,11 @@ class Graph():
         return self.vertexes==other.vertexes
 
     def get_vertexes(self):
-        """Список вершин"""
+        """get vertexes list"""
         return list(self.vertexes.keys())
 
     def get_edges(self):
-        """Список рёбер"""
+        """get edges list"""
         edges=[]
         for vertex in self.vertexes:
             for neighbour in self.vertexes[vertex]:
@@ -64,7 +67,7 @@ class Graph():
         return edges
 
     def get_incident_edges(self,v):
-        """Возвращает список рёбер,инцедентных вершине v"""
+        """returns a list of edges incident to vertex v"""
         edges=[]
         pos=list(self.vertexes.keys()).index(v)
         for i,u in enumerate(self.vertexes[v]):
@@ -77,40 +80,35 @@ class Graph():
         
             
     def add_vertex(self,v):
-        """Добавление вершины"""
+        """Adding a vertex"""
         if v not in self.vertexes.keys():
             self.vertexes[v]=[]
 
     def add_edge(self,edge):
-        """Добавление ребра.В случае если какая либо из вершин не входит в граф, она будет добавлена в граф"""
-        if len(edge)==2 and edge[0]!=edge[1]:
-            self.add_vertex(edge[0])
-            self.add_vertex(edge[1])
-            if edge[1] not in self.vertexes[edge[0]]:
-                self.vertexes[edge[0]].append(edge[1])
-            if edge[0] not in self.vertexes[edge[1]]:
-                self.vertexes[edge[1]].append(edge[0])
-
+        """Adding an edge. If any of the vertices is not included in the graph, it will be added to the graph"""
+        if edge.v!=edge.u:
+            self.add_vertex(edge.v)
+            self.add_vertex(edge.u)
+            if edge.u not in self.vertexes[edge.v]:
+                self.vertexes[edge.v].append(edge.u)
+            if edge.v not in self.vertexes[edge.u]:
+                self.vertexes[edge.u].append(edge.v)
 
 
  
-    def floyd(self,length=100):                                             #length - длинна рёбер 
-        """Нахождение матрицы расстояний с помощью алгоритма флойда"""
-
-        D=[]
-        for i,v in enumerate(self.vertexes):
-            row=[]
-            for j,u in enumerate(self.vertexes):
-                if i==j:
-                    row.append(0)
-                elif u in self.vertexes[v]:
-                    row.append(length)
-                else:
-                    row.append(math.inf)
-
-            D.append(row)
+    def floyd(self,length=100):                                             
+        """Finding the distance matrix using Floyd's algorithm"""
 
         n=len(self.vertexes.keys())
+        D=np.zeros((n,n))
+        for i,v in enumerate(self.vertexes):
+            for j,u in enumerate(self.vertexes):
+                if i!=j:
+                    if u in self.vertexes[v]:
+                        D[i][j]=length
+                    else:
+                        D[i][j]=math.inf
+
         for k in range(n):
             for i in range(n):
                 for j in range(n):
@@ -121,7 +119,7 @@ class Graph():
 
 
     def get_str(self):
-        """Возвращает граф как словарь со строковыми ключами и строковыми списками значений"""
+        """Returns the graph as a dict with string keys and string value lists"""
         g={}
         for v in self.vertexes:
             adjacent=[]
@@ -133,7 +131,7 @@ class Graph():
             
 
     def __mul__(self,other):
-        """Прямое произведение двух графов"""
+        """Direct product of two graphs"""
         self_str=self.get_str()
         other_str=other.get_str()
 
@@ -147,7 +145,7 @@ class Graph():
 
 
         def vertex_patrition(two_vertex_str):
-            """Разбиение веришины графа состоящего из произведение двух графов на две вершины из соответствующих графов"""
+            """Splitting a vertex of a graph consisting of the product of two graphs into two vertices from the corresponding graphs"""
             stack=[]
             v1,v2='',''
             for i,s in enumerate(two_vertex_str):
@@ -176,11 +174,149 @@ class Graph():
 
         return Graph(g)
 
+    def bfs(self,a,visit=print):
+        """BFS from a given vertex a"""
+        visited={}
+        for v in self.vertexes:
+            visited[v]=False
 
+        Q=[]
+
+        def BFS(a):
+            visited[a]=True
+            visit(a)
+            Q.append(a)
+            while len(Q):
+                x=Q.pop(0)
+                for y in self.vertexes[x]:
+                    if visited[y]==False:
+                        visit(y)
+                        visited[y]=True
+                        Q.append(y)
+
+        BFS(a)
+        for v in self.vertexes:
+            if visited[v]==False:
+                BFS(v)
+
+    def get_bfs_tree(self,a):
+        a.root=True
+        visited={}
+        for v in self.vertexes:
+            visited[v]=False
+
+        Q=[]
+
+        fathers={}
+
+        def BFS(a):
+            visited[a]=True
+            fathers[a]=a
+            Q.append(a)
+            while len(Q):
+                x=Q.pop(0)
+                for y in self.vertexes[x]:
+                    if visited[y]==False:
+                        fathers[y]=x
+                        visited[y]=True
+                        Q.append(y)
+
+
+        BFS(a)
+        for v in self.vertexes:
+            if visited[v]==False:
+                BFS(v)
+
+        for x,Fx in fathers.items():
+            print('Father('+str(x.name)+')=',Fx.name)
+
+
+        g={}
+        for vertex in fathers:
+            g[vertex]=[fathers[vertex]]
+            for son in fathers:
+                if fathers[son]==vertex:
+                    g[vertex].append(son)
+
+        return Graph(g)
+
+    def dfs(self,a,visit=print):
+        visited={}
+        for v in self.vertexes:
+            visited[v]=False
+
+        S=[]
+
+        def DFS(a):
+            visited[a]=True
+            visit(a)
+            S.append(a)
+            while len(S):
+                x=S[-1]
+                unvisited=0
+                for y in self.vertexes[x]:
+                    if visited[y]==False:
+                        visited[y]=True
+                        unvisited+=1
+                        visit(y)
+                        S.append(y)
+                        break
+                if unvisited==0:
+                    S.pop(-1)
+
+        DFS(a)
+        for v in self.vertexes:
+            if visited[v]==False:
+                DFS(v)
+
+    def get_dfs_tree(self,a):
+        a.root=True
+        visited={}
+        for v in self.vertexes:
+            visited[v]=False
+
+        S=[]
+
+        fathers={}
+
+        def DFS(a):
+            visited[a]=True
+            fathers[a]=a
+            S.append(a)
+            while len(S):
+                x=S[-1]
+                unvisited=0
+                for y in self.vertexes[x]:
+                    if visited[y]==False:
+                        visited[y]=True
+                        unvisited+=1
+                        fathers[y]=x
+                        S.append(y)
+                        break
+                if unvisited==0:
+                    S.pop(-1)
+
+        DFS(a)
+        for v in self.vertexes:
+            if visited[v]==False:
+                DFS(v)
+
+        for x,Fx in fathers.items():
+            print('Father('+str(x.name)+')=',Fx.name)
+
+
+        g={}
+        for vertex in fathers:
+            g[vertex]=[fathers[vertex]]
+            for son in fathers:
+                if fathers[son]==vertex:
+                    g[vertex].append(son)
+
+        return Graph(g)
 
 
 class GenerateGraph():
-    """Генерация некоторых специальных графов соответсвующей размерности"""
+    """Generation of some special graphs of the appropriate dimension"""
 
     def Kn(self,n):
         g={}
@@ -251,8 +387,8 @@ class GenerateGraph():
         for i in range(n-1):
             g*=self.Pn(2)
         
+        # change the vertex names to binary numbers
         if vertex_marking:
-        #изменяем имена вершин в бинарные числа 
             g_str=g.get_str()
             old_names=g_str.keys()
             new_names=[]

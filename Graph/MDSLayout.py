@@ -4,6 +4,7 @@ from Graph import Graph,Vertex,Edge
 import tkinter as tk
 import random
 import math
+import numpy as np
 
 
 class Parametrs():
@@ -44,21 +45,19 @@ class MDSLayout():
         self.parametrs=parametrs
 
     def move_vertex(self,v):
-            rad=self.parametrs.get_vertex_rad()
-            self.canvas.coords(v.id,v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad)
+            self.canvas.coords(v.id,v.pos.x-v.rad,v.pos.y-v.rad,v.pos.x+v.rad,v.pos.y+v.rad)
             self.canvas.tag_raise(v.id)
             if self.parametrs.get_vertex_marking():
-                self.canvas.coords(v.name_id,v.pos.x-2*rad,v.pos.y)
+                self.canvas.coords(v.name_id,v.pos.x-v.rad-len(str(v.name))*3,v.pos.y)
 
     def move_edge(self,e):
             self.canvas.coords(e.id,e.v.pos.x,e.v.pos.y,e.u.pos.x,e.u.pos.y)
 
     def move_vertex_by_mouse(self,event,v,graph,edges):
-        rad=self.parametrs.get_vertex_rad()
         w=self.canvas.winfo_width()
         h=self.canvas.winfo_height()
         if event.x>0 and event.x<w and event.y>0 and event.y<h:
-            self.canvas.coords(v.id,event.x-rad,event.y-rad,event.x+rad,event.y+rad)
+            self.canvas.coords(v.id,event.x-v.rad,event.y-v.rad,event.x+v.rad,event.y+v.rad)
 
             v.pos.x=event.x
             v.pos.y=event.y
@@ -66,7 +65,7 @@ class MDSLayout():
             self.canvas.tag_raise(v.id)
 
             if self.parametrs.get_vertex_marking():
-                self.canvas.coords(v.name_id,event.x-2*rad,event.y)
+                self.canvas.coords(v.name_id,event.x-v.rad-len(str(v.name))*3,event.y)
 
             for e in edges:
                 if e in graph.get_incident_edges(v):
@@ -79,30 +78,28 @@ class MDSLayout():
         h=self.canvas.winfo_height()
 
         for v in graph.vertexes:
-            v.pos=Point(random.randint(rad,w-rad),random.randint(rad,h-rad))
-            v.id=self.canvas.create_oval(v.pos.x-rad,v.pos.y-rad,v.pos.x+rad,v.pos.y+rad,fill=self.parametrs.get_vertex_color())
+            if v.root:
+                v.rad=rad*2
+            else:
+                v.rad=rad
+            v.pos=Point(random.randint(v.rad,w-v.rad),random.randint(v.rad,h-v.rad))
+            v.id=self.canvas.create_oval(v.pos.x-v.rad,v.pos.y-v.rad,v.pos.x+v.rad,v.pos.y+v.rad,fill=self.parametrs.get_vertex_color())
             self.canvas.tag_bind(v.id, '<B1-Motion>',lambda event,vertex=v:self.move_vertex_by_mouse(event,vertex,graph,edges)) 
             if self.parametrs.get_vertex_marking():
                 v.name_id=self.canvas.create_text(0,0,text=str(v.name),width=100,fill='black')
 
     def place_edges_on_canvas(self,graph,edges):
-
         for e in edges:
             e.id=self.canvas.create_line(e.v.pos.x,e.v.pos.y,e.u.pos.x,e.u.pos.y,
                  fill=self.parametrs.get_edge_color(),width=self.parametrs.get_edges_width())
 
     def GetWeightMatrix(self,D):
         """Weight matrix for each vertex in graph"""
-        W=[]
-        for i in range(len(D)):
-            row=[]
-            for j in range(len(D)):
-                if i!=j:
-                    row.append(D[i][j]**-2)
-                else:
-                    row.append(1)
-
-            W.append(row)
+        n=len(D)
+        W=np.ones((n,n))
+        for i in range(n):
+            for j in range(i+1,n):
+                W[i][j]=W[j][i]=D[i][j]**-2
 
         return W
 
