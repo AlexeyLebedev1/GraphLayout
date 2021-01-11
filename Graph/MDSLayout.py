@@ -44,11 +44,18 @@ class MDSLayout():
         self.canvas=canvas
         self.parametrs=parametrs
 
+    def disp_text(self,name):
+        p=name.find('\n')
+        if p==-1:
+            return len(name)*3
+        else:
+            return p*3
+
     def move_vertex(self,v):
             self.canvas.coords(v.id,v.pos.x-v.rad,v.pos.y-v.rad,v.pos.x+v.rad,v.pos.y+v.rad)
             self.canvas.tag_raise(v.id)
             if self.parametrs.get_vertex_marking():
-                self.canvas.coords(v.name_id,v.pos.x-v.rad-len(str(v.name))*3,v.pos.y)
+                self.canvas.coords(v.name_id,v.pos.x-v.rad-self.disp_text(str(v.name)),v.pos.y)
 
     def move_edge(self,e):
             self.canvas.coords(e.id,e.v.pos.x,e.v.pos.y,e.u.pos.x,e.u.pos.y)
@@ -65,7 +72,8 @@ class MDSLayout():
             self.canvas.tag_raise(v.id)
 
             if self.parametrs.get_vertex_marking():
-                self.canvas.coords(v.name_id,event.x-v.rad-len(str(v.name))*3,event.y)
+                #self.canvas.tag_raise(v.name_id)
+                self.canvas.coords(v.name_id,event.x-v.rad-self.disp_text(str(v.name)),event.y)
 
             for e in edges:
                 if e in graph.get_incident_edges(v):

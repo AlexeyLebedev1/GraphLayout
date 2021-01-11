@@ -53,6 +53,54 @@ class GraphGUI():
         self.algorithm_menu=tk.Menu(self.main_menu,tearoff=0)
         self.algorithm_menu.add_command(label='BFS',command=lambda procedure='BFS':self.set_start_vertex(procedure))
         self.algorithm_menu.add_command(label='DFS',command=lambda procedure='DFS':self.set_start_vertex(procedure))
+
+        def f(name_algo):
+            if name_algo=='Eulerian cycle':
+                cycle=self.graph.find_Eulerian_cycle()
+                if cycle:
+                    print(name_algo+':')
+                    print(cycle)
+                else:
+                    print('There are not '+name_algo)
+            elif name_algo=='Hamiltonian cycle':
+                cycle=self.graph.find_Hamiltonian_cycle()
+                if cycle:
+                    print(name_algo+':')
+                    print(cycle)
+                else:
+                    print('There are not '+name_algo)
+            #elif name_algo=='Hamiltonian path':
+                #self.graph.get_Hamiltonian_path()
+            elif name_algo=='Decision tree':
+                self.graph=self.graph.get_decision_tree()
+                self.DrawGraph()
+            elif name_algo=='Max independent sets':
+                S=self.graph.get_max_independent_sets()
+                print(name_algo+':')
+                print(S)
+            elif name_algo=='Independent number':
+                print(name_algo+'=',self.graph.get_independence_number())
+
+            elif name_algo=='Vertex coverage number':
+                print(name_algo+'=',self.graph.get_vertex_coverage_number())
+            #elif name_algo=='Max clique':
+                #S=self.graph.max_clique()
+                #print(name_algo+':')
+                #print(S)
+            #elif name_algo=='Clique number':
+                #print(name_algo+'=',self.graph.clique_number())
+
+        self.algorithm_menu.add_command(label='Eulerian cycle',command=lambda name='Eulerian cycle':f(name))
+        self.algorithm_menu.add_command(label='Hamiltonian cycle',command=lambda name='Hamiltonian cycle':f(name))
+        #self.algorithm_menu.add_command(label='Hamiltonian path',command=lambda name='Hamiltonian path':f(name))
+        self.algorithm_menu.add_command(label='Decision tree',command=lambda name='Decision tree':f(name))
+        self.algorithm_menu.add_command(label='Max independent sets',command=lambda name='Max independent sets':f(name))
+        self.algorithm_menu.add_command(label='Independent number',command=lambda name='Independent number':f(name))
+        self.algorithm_menu.add_command(label='Vertex coverage number',command=lambda name='Vertex coverage number':f(name))
+        #self.algorithm_menu.add_command(label='Max clique',command=lambda name='Max clique':f(name))
+        #self.algorithm_menu.add_command(label='Clique number',command=lambda name='Clique number':f(name))
+
+
         self.main_menu.add_cascade(label='Algorithms',menu=self.algorithm_menu)
 
 
@@ -319,7 +367,13 @@ class GraphGUI():
             operations_window.destroy()
             self.DrawGraph()
 
+        def inverse(i):
+            graph[i]=~graph[i]
+            self.graph=graph[i]
+
         tk.Button(operations_window,text='Composition',bg='white',command=composition).grid(column=1,row=0,padx=3,pady=3,sticky='W')
+        tk.Button(operations_window,text='~Graph1',bg='white',command=lambda i=0:inverse(i)).grid(column=1,row=1,padx=3,pady=3,sticky='W')
+        tk.Button(operations_window,text='~Graph2',bg='white',command=lambda i=1:inverse(i)).grid(column=1,row=2,padx=3,pady=3,sticky='W')
         tk.Button(operations_window,text='Draw',bg='white',command=draw).grid(column=1,row=9,padx=3,pady=3,sticky='W')
 
 

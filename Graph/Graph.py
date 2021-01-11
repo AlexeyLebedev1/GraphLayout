@@ -2,6 +2,7 @@ from Point import Point
 import random
 import math
 import numpy as np
+from copy import copy
 
 
 class Vertex():
@@ -29,6 +30,9 @@ class Vertex():
     def __str__(self):
         return str(self.name)
 
+    def __copy__(self):
+        return Vertex(self.name)
+
 class Edge():
     """Undirected graph edge"""
     def __init__(self,v,u):
@@ -38,6 +42,18 @@ class Edge():
 
     def __eq__(self,other):
         return [self.v,self.u]==[other.v,other.u] or [self.v,self.u]==[other.u,other.v] 
+
+    def __str__(self):
+        return '('+str(self.v)+','+str(self.u)+')'
+
+    def __copy__(self):
+        return Edge(copy(self.v),copy(self.u))
+
+    def __repr__(self):
+        return str(self)
+
+    def __hash__(self):
+        return hash(hash(self.u)+hash(self.v))
     
 
 class Graph():
@@ -51,6 +67,16 @@ class Graph():
 
     def __eq__(self,other):
         return self.vertexes==other.vertexes
+
+    def __invert__(self):
+        g=Graph()
+        for v in self.vertexes:
+            g.add_vertex(Vertex(v.name))
+        V=set(g.get_vertexes())
+        for v in g.vertexes:
+            g.vertexes[v]=list(V.symmetric_difference(set(self.vertexes[v])))
+
+        return g
 
     def get_vertexes(self):
         """get vertexes list"""
@@ -315,6 +341,197 @@ class Graph():
         return Graph(g)
 
 
+    def find_Eulerian_cycle(self):
+        for v in self.vertexes:
+            if len(self.vertexes[v])%2!=0:
+                return
+
+        a=self.get_vertexes()[0]
+        visited_edges={}
+        for v in self.vertexes:
+            edges={}
+            for u in self.vertexes[v]:
+                edges[u]=False
+            visited_edges[v]=edges
+
+
+        S,C=[],[]
+
+        S.append(a)
+
+        while len(S):
+            x=S[-1]
+            unvisited_edges=0
+            for y in visited_edges[x]:
+                if visited_edges[x][y]==False:
+                    visited_edges[x][y]=visited_edges[y][x]=True
+                    S.append(y)
+                    unvisited_edges+=1
+                    break
+
+            if unvisited_edges==0:
+                C.append(S.pop(-1))
+
+
+        return C
+
+    def find_Hamiltonian_cycle(self):
+        a=self.get_vertexes()[0]
+        PATH=[]
+        N={}
+
+        N[a]=self.vertexes[a][:]
+        PATH.append(a)
+
+        while PATH:
+            x=PATH[-1]
+            if N[x]:
+                y=N[x].pop(-1)
+                if y not in PATH:
+                    PATH.append(y)
+                    N[y]=self.vertexes[y][:]
+                    found=True
+                    for v in self.vertexes:
+                        if v not in PATH:
+                            found=False
+                            break
+                    if found:
+                        if y in self.vertexes[a]:
+                            PATH.append(a)
+                            return PATH
+            else:
+                PATH.pop(-1)
+
+
+    #def get_Hamiltonian_path(self):
+        #a=self.get_vertexes()[0]
+        #PATH=[]
+        #N={}
+
+        #N[a]=self.vertexes[a][:]
+        #PATH.append(a)
+
+        #while PATH:
+            #x=PATH[-1]
+            #if N[x]:
+                #y=N[x].pop(-1)
+                #if y not in PATH:
+                    #PATH.append(y)
+                    #N[y]=self.vertexes[y][:]
+                    #found=True
+                    #for v in self.vertexes:
+                        #if v not in PATH:
+                            #found=False
+                            #break
+                    #if found:
+                        #print(PATH)
+                        #return
+            #else:
+                #PATH.pop(-1)
+
+        #print("There are not Hamiltonian path")
+
+    def get_decision_tree(self,func=None):
+        def get_name(V,E):
+            name='V:'
+            for v in V:
+                name+=str(v)+','
+            name+='\nE:'
+            for e in E:
+                name+=str(e)+','
+            return name
+        
+
+        g=Graph()
+        def get_incident_edges(a,E):
+            edges=[]
+            for e in E:
+                if a==e.v or a==e.u:
+                    edges.append(e)
+            return edges
+
+        def get_adjacent_vertexes(a,E):
+            vertexes=[]
+            for e in E:
+                if a==e.v:
+                    vertexes.append(e.u)
+                if a==e.u:
+                    vertexes.append(e.v)
+
+            return vertexes
+   
+        def build_tree(root,V,E):
+            if E:
+                for e in E:
+                    a=e.v
+                    break
+
+                V1=V.symmetric_difference(set([a]))
+                E1=E.symmetric_difference(set(get_incident_edges(a,E)))
+                v=Vertex(get_name(V1,E1))
+                g.add_edge(Edge(root,v))
+                build_tree(v,V1,E1)
+
+                A=get_adjacent_vertexes(a,E)
+                V2=V.symmetric_difference(set(A))
+                E2=set()
+                for x in A:
+                    E2.update(set(get_incident_edges(x,E)))
+                E2=E.symmetric_difference(E2)
+                u=Vertex(get_name(V2,E2))
+                g.add_edge(Edge(root,u))
+                build_tree(u,V2,E2)
+            elif func!=None:
+                func(V)
+
+        V=set(self.get_vertexes())
+        E=set(self.get_edges())
+        root=Vertex(get_name(V,E))
+        root.root=True
+        g.add_vertex(root)
+        build_tree(root,V,E)
+
+        return g
+
+    def get_max_independent_sets(self):
+        S=[]
+        def f(V):
+            S.append(V)
+        self.get_decision_tree(f)
+        maxlen=0
+        for s in S:
+            if len(s)>maxlen:
+                maxlen=len(s)
+        res=[]
+        for s in S:
+            if len(s)==maxlen:
+                res.append(s)
+        return res
+
+    def get_independence_number(self):
+        S=[]
+        def f(V):
+            S.append(V)
+        self.get_decision_tree(f)
+        maxlen=0
+        for s in S:
+            if len(s)>maxlen:
+                maxlen=len(s)
+        return maxlen
+
+    def get_vertex_coverage_number(self):
+        return len(self.get_vertexes())-self.get_independence_number()
+
+    #def max_clique(self):
+        #g=~self
+        #return g.get_max_independent_sets()
+
+    #def clique_number(self):
+        #g=~self
+        #return g.get_independence_number()
+
+
+
 class GenerateGraph():
     """Generation of some special graphs of the appropriate dimension"""
 
@@ -414,6 +631,23 @@ class GenerateGraph():
         return g
 
 
+#def HeightRange(graph,procedure):
+    #Hrange=set()
+    #if procedure=='BFS':
+        #for i,v in enumerate(graph.vertexes):
+            #tree=graph.get_bfs_tree(v)
+            #v.root=False
+            #D=tree.floyd()
+            #h=max(D[i])
+            #Hrange.add(h)
 
+    #else:
+       #for i,v in enumerate(graph.vertexes):
+            #tree=graph.get_dfs_tree(v)
+            #v.root=False
+            #D=tree.floyd(1)
+            #h=max(D[i])
+            #Hrange.add(h)
 
-
+    #print(Hrange)
+    
