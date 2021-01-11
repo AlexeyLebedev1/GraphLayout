@@ -18,3 +18,7 @@ K50
 
 Q5
 ![Alt Text](https://github.com/Alexey9741/GraphLayout/blob/master/Images/Q5.png?raw=true)
+
+
+BFS tree for Q6
+![Alt Text](https://github.com/Alexey9741/GraphLayout/blob/master/Images/BFS%20tree%20for%20Q6.gif?raw=true)
