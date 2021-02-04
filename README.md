@@ -7,7 +7,7 @@ C6 x P5
 P5 x P7
 ![Alt Text](https://github.com/Alexey9741/GraphLayout/blob/master/Images/P5%20x%20P7.gif?raw=true)
 
-P5 x P7
+K2,20
 ![Alt Text](https://github.com/Alexey9741/GraphLayout/blob/master/Images/K2,20.gif?raw=true)
 
 In the settings you can costume graph layout
