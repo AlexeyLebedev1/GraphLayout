@@ -5,13 +5,18 @@ import numpy as np
 from copy import copy
 
 
+
+
 class Vertex():
     """Graph vertex"""
     def __init__(self,name):
         self.name=name
         self.pos=Point(0,0)
-        self.id=None              #id for drawing on Tkinter canvas
+
+        #id for drawing on Tkinter canvas
+        self.id=None              
         self.name_id=None   
+
         self.rad=0
         self.root=False
 
@@ -71,10 +76,12 @@ class Graph():
     def __invert__(self):
         g=Graph()
         for v in self.vertexes:
-            g.add_vertex(Vertex(v.name))
+            g.add_vertex(copy(v))
         V=set(g.get_vertexes())
         for v in g.vertexes:
-            g.vertexes[v]=list(V.symmetric_difference(set(self.vertexes[v])))
+            adjacency_invert=set(self.vertexes[v])
+            adjacency_invert.add(v)
+            g.vertexes[v]=list(V.symmetric_difference(adjacency_invert))
 
         return g
 
@@ -144,7 +151,7 @@ class Graph():
         return D
 
 
-    def get_str(self):
+    def get_str_dict(self):
         """Returns the graph as a dict with string keys and string value lists"""
         g={}
         for v in self.vertexes:
@@ -158,8 +165,8 @@ class Graph():
 
     def __mul__(self,other):
         """Direct product of two graphs"""
-        self_str=self.get_str()
-        other_str=other.get_str()
+        self_str=self.get_str_dict()
+        other_str=other.get_str_dict()
 
         g={}
 
@@ -253,9 +260,6 @@ class Graph():
             if visited[v]==False:
                 BFS(v)
 
-        for x,Fx in fathers.items():
-            print('Father('+str(x.name)+')=',Fx.name)
-
 
         g={}
         for vertex in fathers:
@@ -326,10 +330,6 @@ class Graph():
         for v in self.vertexes:
             if visited[v]==False:
                 DFS(v)
-
-        for x,Fx in fathers.items():
-            print('Father('+str(x.name)+')=',Fx.name)
-
 
         g={}
         for vertex in fathers:
@@ -403,33 +403,6 @@ class Graph():
                 PATH.pop(-1)
 
 
-    #def get_Hamiltonian_path(self):
-        #a=self.get_vertexes()[0]
-        #PATH=[]
-        #N={}
-
-        #N[a]=self.vertexes[a][:]
-        #PATH.append(a)
-
-        #while PATH:
-            #x=PATH[-1]
-            #if N[x]:
-                #y=N[x].pop(-1)
-                #if y not in PATH:
-                    #PATH.append(y)
-                    #N[y]=self.vertexes[y][:]
-                    #found=True
-                    #for v in self.vertexes:
-                        #if v not in PATH:
-                            #found=False
-                            #break
-                    #if found:
-                        #print(PATH)
-                        #return
-            #else:
-                #PATH.pop(-1)
-
-        #print("There are not Hamiltonian path")
 
     def get_decision_tree(self,func=None):
         def get_name(V,E):
@@ -606,7 +579,7 @@ class GenerateGraph():
         
         # change the vertex names to binary numbers
         if vertex_marking:
-            g_str=g.get_str()
+            g_str=g.get_str_dict()
             old_names=g_str.keys()
             new_names=[]
             for name in old_names:
@@ -631,23 +604,40 @@ class GenerateGraph():
         return g
 
 
-#def HeightRange(graph,procedure):
-    #Hrange=set()
-    #if procedure=='BFS':
-        #for i,v in enumerate(graph.vertexes):
-            #tree=graph.get_bfs_tree(v)
-            #v.root=False
-            #D=tree.floyd()
-            #h=max(D[i])
-            #Hrange.add(h)
+    def adjacency_list(self,Vdict):
+        """Returns a graph initialized with adjacency lists"""
+        g={}
+        V=list(Vertex(v) for v in Vdict.keys())
+        for v in V:
+            neighbours=[]
+            for u in Vdict[v.name]:
+                neighbours.append(V[V.index(Vertex(u))])
+            g[v]=neighbours
 
-    #else:
-       #for i,v in enumerate(graph.vertexes):
-            #tree=graph.get_dfs_tree(v)
-            #v.root=False
-            #D=tree.floyd(1)
-            #h=max(D[i])
-            #Hrange.add(h)
+        return Graph(g)
 
-    #print(Hrange)
-    
+    def adjacency_matrix(self,matrix):
+        n=len(matrix)
+        V=list(Vertex(i) for i in range(n))
+        g={}
+        for i in range(n):
+            g[V[i]]=[]
+            for j in range(n):
+                if matrix[i][j]==1:
+                    g[V[i]].append(V[j])
+
+        return Graph(g)
+
+    def set_V_E(self,V,E):
+        g={}
+        for v in V:
+            g[Vertex(v)]=[]
+
+        V=list(g.keys())
+        
+        for e in E:
+            g[Vertex(e[0])].append(V[V.index(Vertex(e[1]))])
+            g[Vertex(e[1])].append(V[V.index(Vertex(e[0]))])
+
+        return Graph(g)
+

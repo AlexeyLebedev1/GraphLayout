@@ -1,7 +1,7 @@
 import tkinter as tk
+import numpy as np
 from Graph import Graph,GenerateGraph,Vertex,Edge
 from MDSLayout import Parametrs,MDSLayout
-
 
 
 class GraphGUI():
@@ -41,9 +41,10 @@ class GraphGUI():
 
         # ways to init graph
         self.create_menu=tk.Menu(self.main_menu,tearoff=0)
-        self.create_menu.add_command(label='Adjacency list',command=self.create_input_window2)
-        self.create_menu.add_command(label='Adjacency matrix')
-        self.create_menu.add_command(label='List of edges and List of Vertexes')
+        self.create_menu.add_command(label='Adjacency list',command=lambda init_way='adjacency list':self.create_input_window2(init_way))
+        self.create_menu.add_command(label='Adjacency matrix',command=lambda init_way='adjacency matrix':self.create_input_window2(init_way))
+        self.create_menu.add_command(label='List of edges and List of Vertexes',
+                                     command=lambda init_way='list of vertexes and list of edges':self.create_input_window2(init_way))
         self.main_menu.add_cascade(label='Create Graph',menu=self.create_menu)
 
         # operations
@@ -51,8 +52,8 @@ class GraphGUI():
 
         # algorithm
         self.algorithm_menu=tk.Menu(self.main_menu,tearoff=0)
-        self.algorithm_menu.add_command(label='BFS',command=lambda procedure='BFS':self.set_start_vertex(procedure))
-        self.algorithm_menu.add_command(label='DFS',command=lambda procedure='DFS':self.set_start_vertex(procedure))
+        self.algorithm_menu.add_command(label='BFS tree',command=lambda procedure='BFS':self.set_start_vertex(procedure))
+        self.algorithm_menu.add_command(label='DFS tree',command=lambda procedure='DFS':self.set_start_vertex(procedure))
 
         def f(name_algo):
             if name_algo=='Eulerian cycle':
@@ -69,8 +70,7 @@ class GraphGUI():
                     print(cycle)
                 else:
                     print('There are not '+name_algo)
-            #elif name_algo=='Hamiltonian path':
-                #self.graph.get_Hamiltonian_path()
+
             elif name_algo=='Decision tree':
                 self.graph=self.graph.get_decision_tree()
                 self.DrawGraph()
@@ -169,67 +169,68 @@ class GraphGUI():
         tk.Button(input_window1,text='Cancel',width=8,height=1,command=btnCanel_event).grid(row=3,column=4,padx=3,pady=3)
 
 
-    def create_input_window2(self):
+    def create_input_window2(self,init_way):
         """Create input window for Defining a graph with adjacency lists"""
         input_window2=tk.Toplevel(bg='white',bd=4)
-        w,h=self.root.winfo_width()//2,self.root.winfo_height()//2
+        w,h=self.root.winfo_width()//3,self.root.winfo_height()//3
         input_window2.geometry('+{}+{}'.format(w,h))
-        input_window2.title('')
+        input_window2.title('Init graph')
 
-        box = tk.Listbox(input_window2,selectmode='EXTENDED')
-        box.pack(side=tk.LEFT)
+        tk.Label(input_window2,text='Input '+init_way,bg='white').pack()
+        graph_text=tk.Text(input_window2,bg='white')
+        graph_text.pack(expand=True)
+        
+        if init_way=='list of vertexes and list of edges':
+            graph_text.insert(1.0,'V:\n\n')
+            graph_text.insert(3.0,'E:')
 
-        scroll = tk.Scrollbar(input_window2,command=box.yview)
-        scroll.pack(side=tk.LEFT, fill=tk.Y)
-        box.config(yscrollcommand=scroll.set)
+        def save_graph():
+            if init_way=='adjacency list':
+                text=graph_text.get(1.0,tk.END)
+                g={}
+                lines=text.split('\n')
+                lines.pop(-1)
+                for line in lines:
+                    s=line.split(',')
+                    vertexes=s[0].split(':')+s[1:]  
+                    g[vertexes[0]]=vertexes[1:]           
 
-        btns_frame=tk.Frame(input_window2,bg='white')
-        btns_frame.pack(side=tk.LEFT,padx=10)
+                self.graph=self.graph_generator.adjacency_list(g)
+                
+            elif init_way=='adjacency matrix':
+                text=graph_text.get(1.0,tk.END)
+                lines=text.split('\n')
+                lines.pop(-1)
+                n=len(lines[0])
+                matrix=np.zeros((n,n))
+                for i,line in enumerate(lines):
+                    for j,a in enumerate(line):
+                        if a=='1':
+                            matrix[i][j]=1
 
-        input_lbl=tk.Label(btns_frame,text="Enter a vertex and adjacent vertices\n (example - '1:2,4,7')",bg='white')
-        input_lbl.pack()
+                self.graph=self.graph_generator.adjacency_matrix(matrix)
 
-        input_entry=tk.Entry(btns_frame)
-        input_entry.pack(anchor=tk.N)
+            elif init_way=='list of vertexes and list of edges':
+                text=graph_text.get(1.0,tk.END)
+                Vstr,Estr=text.split('\n\n')
+                V=Vstr[2:].split(',')
+                Estr=Estr[2:-1].split('),')
+                E=[]
+                for estr in Estr:
+                    e=[]
+                    for a in estr:
+                        if a not in '(,)':
+                            e.append(a)
+                    E.append(e)
 
-        def addItem():
-            box.insert(tk.END, input_entry.get())
-            input_entry.delete(0, tk.END)
+                self.graph=self.graph_generator.set_V_E(V,E)
 
-        btnAdd=tk.Button(btns_frame,text='Add',command=addItem)
-        btnAdd.pack(fill=tk.X)
-
-        def del_Items():
-            select = list(box.curselection())
-            select.reverse()
-            for i in select:
-                box.delete(i)
-
-        btnDel=tk.Button(btns_frame,text='Delete',command=del_Items)
-        btnDel.pack(fill=tk.X)
-
-        def save_graph():  ### can make better
-            g_str=box.get(0,tk.END)
-            g={}
-            for line in g_str:
-                s=line.split(',')
-                vertexes=s[0].split(':')+s[1:]  
-                g[Vertex(vertexes[0])]=list(Vertex(vertexes[i]) for i in range(1,len(vertexes)))
-             
-            V=list(g.keys())
-            for v in V:
-                v_list=[]
-                for u in g[v]:
-                    v_list.append(V[V.index(u)])
-                g[v]=v_list
-
-            self.graph=Graph(g)
             input_window2.destroy()
             self.DrawGraph()
 
            
-        btnDraw=tk.Button(btns_frame,text='Draw',command=save_graph)
-        btnDraw.pack(fill=tk.X)
+        tk.Button(input_window2,text='Draw',command=save_graph).pack(side=tk.LEFT)
+
 
     def create_settings_window(self):
         """Create a window for layout settings"""
@@ -240,8 +241,8 @@ class GraphGUI():
         settings_window.geometry('+{}+{}'.format(w,h))
         settings_window.title('settings')
 
-        colors_vertex=['red','black','lavender','peach puff','deep sky blue','dark sea green','salmon','SkyBlue1']
-        colors_edges=['black','gray63','thistle2','SlateGray4','azure','lavender','cornflower blue']
+        colors_vertex=['red','black','lavender','peach puff','deep sky blue','dark sea green','salmon','SkyBlue1','white']
+        colors_edges=['red','black','lavender','peach puff','deep sky blue','dark sea green','salmon','SkyBlue1','white']
 
         colorVlbl=tk.Label(settings_window,text='Vertexes color: ',bg='white')
         colorVlbl.grid(row=0,column=0,padx=3,pady=3,sticky='W')
@@ -396,29 +397,23 @@ class GraphGUI():
         start_vertex_box.pack( fill=tk.BOTH)
         scrollbar.config(command=start_vertex_box.yview)
 
-        build_tree=tk.BooleanVar(value=True)
+        #build_tree=tk.BooleanVar(value=True)
 
         def save_start_vertex():
             index=start_vertex_box.curselection()
             if len(index):
                 if procedure=='BFS':
                     start_vertex_window.destroy()
-                    self.graph.bfs(vertex_list[index[0]])
-                    if build_tree:
-                        self.graph=self.graph.get_bfs_tree(vertex_list[index[0]])
-                        self.DrawGraph()
-                        vertex_list[index[0]].root=False
+                    self.graph=self.graph.get_bfs_tree(vertex_list[index[0]])
+                    self.DrawGraph()
+                    vertex_list[index[0]].root=False
                 else:
                     start_vertex_window.destroy()
-                    self.graph.dfs(vertex_list[index[0]])
-                    if build_tree:
-                        self.graph=self.graph.get_dfs_tree(vertex_list[index[0]])
-                        self.DrawGraph()
-                        vertex_list[index[0]].root=False
+                    self.graph=self.graph.get_dfs_tree(vertex_list[index[0]])
+                    self.DrawGraph()
+                    vertex_list[index[0]].root=False
 
-
-        tk.Checkbutton(start_vertex_window,text='build '+procedure+' tree', bg='white',variable=build_tree).pack()
-        tk.Button(start_vertex_window,text=procedure,bg='white',command=save_start_vertex).pack()
+        tk.Button(start_vertex_window,text='Draw '+ procedure+' tree',bg='white',command=save_start_vertex).pack()
 
 
     def DrawGraph(self):
@@ -427,9 +422,6 @@ class GraphGUI():
 
 
    
-
-
-
 
 Window=GraphGUI()
 

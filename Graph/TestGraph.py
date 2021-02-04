@@ -1,4 +1,7 @@
 import unittest
+from copy import copy
+import numpy as np
+import math
 from Graph import Graph,GenerateGraph,Vertex,Edge
 from Point import Point
 
@@ -18,6 +21,10 @@ class TestPoint(unittest.TestCase):
         self.assertEqual(self.x1,self.point1.x)
         self.assertEqual(self.y1,self.point1.y)
 
+    def test_eq(self):
+        tmp=Point(self.point1.x,self.point1.y)
+        self.assertEqual(tmp,self.point1)
+
     def test_add(self):
         sum=self.point1+self.point2
         self.assertEqual(self.x1+self.x2,sum.x)
@@ -28,13 +35,6 @@ class TestPoint(unittest.TestCase):
         self.assertEqual(self.x1-self.x2,sum.x)
         self.assertEqual(self.y1-self.y2,sum.y)
 
-    def test_eq(self):
-        tmp=Point(self.point1.x,self.point1.y)
-        self.assertEqual(tmp,self.point1)
-
-    def test_length(self):
-        self.assertEqual(5,self.point2.length())
-
     def test_mul(self):
         tmp=Point(self.point1.x*2,self.point1.y*2)
         self.assertEqual(tmp,self.point1*2)
@@ -42,6 +42,12 @@ class TestPoint(unittest.TestCase):
     def test_truediv(self):
         tmp=Point(self.point1.x/2,self.point1.y/2)
         self.assertEqual(tmp,self.point1/2)
+
+    def test_norm(self):
+        self.assertEqual(5,self.point2.norm())
+
+    def test_abs(self):
+        self.assertEqual(5,abs(self.point2))
 
 
 
@@ -63,34 +69,81 @@ class TestVertex(unittest.TestCase):
     def test_ne(self):
         self.assertNotEqual(str(self.vertex.name),str(self.vertex.name)+str('v'))
 
+    def test_hash(self):
+        self.assertEqual(hash(self.name),hash(self.vertex))
+
+    def test_str(self):
+        self.assertEqual(str(self.name),str(self.vertex))
+
+    def test_copy(self):
+        self.assertEqual(Vertex(self.vertex.name),copy(self.vertex))
+
+
+class TestEdge(unittest.TestCase):
+    def setUp(self):
+        self.v=Vertex('a')
+        self.u=Vertex('b')
+        self.e1=Edge(self.v,self.u)
+        self.e2=Edge(self.u,self.v)
+
+    def test_eq(self):
+        self.assertEqual(Edge(self.v,self.u),self.e1)
+        self.assertEqual(self.e1,self.e2)
+
+    def test_str(self):
+        self.assertEqual('('+str(self.v)+','+str(self.u)+')',str(self.e1))
+
+    def test_hash(self):
+        self.assertEqual(hash(hash(self.v)+hash(self.u)),hash(self.e1))
+
 
 class TestGraph(unittest.TestCase):
     def setUp(self):
-        self.vertex_list={
-               Vertex(1):[Vertex(2),Vertex(4),Vertex(6)],
-               Vertex(2):[Vertex(1)],
-               Vertex(3):[ Vertex(5), Vertex(9)],
-               Vertex(4):[Vertex(1)],
-               Vertex(5):[Vertex(3),Vertex(9)],
-               Vertex(6):[Vertex(1)],
-               Vertex(7):[Vertex(8),Vertex(10)],
-               Vertex(8):[Vertex(7), Vertex(10), Vertex(11)],
-               Vertex(9):[Vertex(3), Vertex(5)],
-               Vertex(10):[Vertex(7), Vertex(8), Vertex(12)],
-               Vertex(11):[Vertex(8),Vertex(12)],
-               Vertex(12):[Vertex(10), Vertex(11)]
+        V=list(Vertex(i) for i in range(1,13))
+        self.adjacency_list = {
+               V[0]:[ V[1],V[3],V[5] ],
+               V[1]:[ V[0] ],
+               V[2]:[ V[4],V[8] ],
+               V[3]:[ V[0] ],
+               V[4]:[ V[2],V[8] ],
+               V[5]:[ V[0] ],
+               V[6]:[ V[7],V[9] ],
+               V[7]:[ V[6],V[9], V[10] ],
+               V[8]:[ V[2],V[4] ],
+               V[9]:[ V[6],V[7], V[11] ],
+               V[10]:[ V[7],V[11] ],
+               V[11]:[ V[9],V[10] ]
                }
-        self.graph=Graph(self.vertex_list)
-        self.edges_list=[Edge(Vertex(1),Vertex(2)),Edge(Vertex(1),Vertex(4)),Edge(Vertex(1),Vertex(6)),
-                         Edge(Vertex(3),Vertex(5)),Edge(Vertex(3),Vertex(9)),Edge(Vertex(5),Vertex(9)),
-                         Edge(Vertex(7),Vertex(8)),Edge(Vertex(7),Vertex(10)),Edge(Vertex(8),Vertex(10)),
-                         Edge(Vertex(8),Vertex(11)),Edge(Vertex(10),Vertex(12)),Edge(Vertex(11),Vertex(12))]
+        self.graph=Graph(self.adjacency_list)
+        self.edges_list=[Edge(V[0],V[1]),Edge(V[0],V[3]),Edge(V[0],V[5]),
+                         Edge(V[2],V[4]),Edge(V[2],V[8]),Edge(V[4],V[8]),
+                         Edge(V[6],V[7]),Edge(V[6],V[9]),Edge(V[7],V[9]),
+                         Edge(V[7],V[10]),Edge(V[9],V[11]),Edge(V[10],V[11])]
 
     def test_init(self):
-        self.assertEqual(self.vertex_list,self.graph.vertexes)
+        self.assertEqual(self.adjacency_list,self.graph.vertexes)
+
+    def test_invert(self):
+        V=copy(self.graph.get_vertexes())
+        invert_list = {
+            V[0]:[ V[2],V[4],V[6],V[7],V[8],V[9],V[10],V[11] ],
+            V[1]:[ V[2],V[3],V[4],V[5],V[6],V[7],V[8],V[9],V[10],V[11] ],
+            V[2]:[ V[0],V[1],V[3],V[5],V[6],V[7],V[9],V[10],V[11] ],
+            V[3]:[ V[1],V[2],V[4],V[5],V[6],V[7],V[8],V[9],V[10],V[11] ],
+            V[4]:[ V[0],V[1],V[3],V[5],V[6],V[7],V[9],V[10],V[11] ],
+            V[5]:[ V[1],V[2],V[3],V[4],V[6],V[7],V[8],V[9],V[10],V[11] ],
+            V[6]:[ V[0],V[1],V[2],V[3],V[4],V[5],V[8],V[10],V[11] ],
+            V[7]:[ V[0],V[1],V[2],V[3],V[4],V[5],V[8],V[11] ],
+            V[8]:[ V[0],V[1],V[3],V[5],V[6],V[7],V[9],V[10],V[11] ],
+            V[9]:[ V[0],V[1],V[2],V[3],V[4],V[5],V[8],V[10] ],
+            V[10]:[ V[0],V[1],V[2],V[3],V[4],V[5],V[6],V[8],V[9] ],
+            V[11]:[ V[0],V[1],V[2],V[3],V[4],V[5],V[6],V[7],V[8] ]
+            }
+        self.assertEqual(Graph(invert_list),~(self.graph))
+
 
     def test_get_vertexes(self):
-        self.assertEqual(list(self.vertex_list.keys()),self.graph.get_vertexes())
+        self.assertEqual(list(self.adjacency_list.keys()),self.graph.get_vertexes())
 
     def test_get_edges(self):
         self.assertEqual(self.edges_list,self.graph.get_edges())
@@ -115,7 +168,7 @@ class TestGraph(unittest.TestCase):
         self.assertIn(Vertex(1),self.graph.vertexes[Vertex(4)])
         self.assertIn(Vertex(4),self.graph.vertexes[Vertex(1)])
 
-    def test_get_str(self):
+    def test_get_str_dict(self):
         g_str={'1':['2','4','6'],
                '2':['1'],
                '3':['5','9'],
@@ -128,11 +181,36 @@ class TestGraph(unittest.TestCase):
                '10':['7','8','12'],
                '11':['8','12'],
                '12':['10','11']}
-        self.assertEqual(g_str,self.graph.get_str())
+        self.assertEqual(g_str,self.graph.get_str_dict())
 
     def test_get_incident_edges(self):
         self.assertEqual(self.edges_list[:3],self.graph.get_incident_edges(Vertex(1)))
 
+    def test_floyd(self):
+        D=np.array([[0,1,math.inf,1,math.inf,1,math.inf,math.inf,math.inf,math.inf,math.inf,math.inf],
+                   [1,0,math.inf,2,math.inf,2,math.inf,math.inf,math.inf,math.inf,math.inf,math.inf],
+                   [math.inf,math.inf,0,math.inf,1,math.inf,math.inf,math.inf,1,math.inf,math.inf,math.inf],
+                   [1,2,math.inf,0,math.inf,2,math.inf,math.inf,math.inf,math.inf,math.inf,math.inf],
+                   [math.inf,math.inf,1,math.inf,0,math.inf,math.inf,math.inf,1,math.inf,math.inf,math.inf],
+                   [1,2,math.inf,2,math.inf,0,math.inf,math.inf,math.inf,math.inf,math.inf,math.inf],
+                   [math.inf,math.inf,math.inf,math.inf,math.inf,math.inf,0,1,math.inf,1,2,2],
+                   [math.inf,math.inf,math.inf,math.inf,math.inf,math.inf,1,0,math.inf,1,1,2],
+                   [math.inf,math.inf,1,math.inf,1,math.inf,math.inf,math.inf,0,math.inf,math.inf,math.inf],
+                   [math.inf,math.inf,math.inf,math.inf,math.inf,math.inf,1,1,math.inf,0,2,1],
+                   [math.inf,math.inf,math.inf,math.inf,math.inf,math.inf,2,1,math.inf,2,0,1],
+                   [math.inf,math.inf,math.inf,math.inf,math.inf,math.inf,2,2,math.inf,1,1,0]])
+
+        A=self.graph.floyd(length=1)
+        self.assertEqual(True,np.array_equal(D,A))
+
+    def test_mul(self):
+        Q2=GenerateGraph().Pn(2)*GenerateGraph().Pn(2)
+        V=[Vertex('(0,0)'),Vertex('(0,1)'),Vertex('(1,0)'),Vertex('(1,1)')]
+        adjacency_list={V[0]:[V[1],V[2]],
+                        V[1]:[V[0],V[3]],
+                        V[2]:[V[0],V[3]],
+                        V[3]:[V[1],V[2]]}
+        self.assertEqual(Q2,Graph(adjacency_list))
 
 
 
@@ -194,6 +272,40 @@ class TestGenerateGraph(unittest.TestCase):
 
     def testQn(self):
         self.assertEqual(self.Q3,self.generator.Qn(3,True))
+
+    def test_adjacency_list(self):
+        K23={0:[2,3,4],
+             1:[2,3,4],
+             2:[0,1],
+             3:[0,1],
+             4:[0,1]}
+        g=self.generator.adjacency_list(K23)
+        self.assertEqual(self.K23,g)
+        V=list(g.vertexes.keys())
+        for v in g.vertexes:
+            for u in g.vertexes[v]:
+                self.assertEqual(id(u),id(V[V.index(u)]))
+
+    def test_adjacency_matrix(self):
+        K23matrix=np.array([[0,0,1,1,1],[0,0,1,1,1],[1,1,0,0,0],[1,1,0,0,0],[1,1,0,0,0]])
+        g=self.generator.adjacency_matrix(K23matrix)
+        self.assertEqual(self.K23,g)
+        V=list(g.vertexes.keys())
+        for v in g.vertexes:
+            for u in g.vertexes[v]:
+                self.assertEqual(id(u),id(V[V.index(u)]))
+
+    def test_set_V_E(self):
+        V=['000','001','010','011','100','101','110','111']
+        E=[['000','001'],['000','010'],['000','100'],['001','011'],['001','101'],['010','011'],
+           ['010','110'],['011','111'],['100','101'],['100','110'],['101','111'],['110','111']]
+
+        g=self.generator.set_V_E(V,E)
+        self.assertEqual(self.Q3,g)
+        V=list(g.vertexes.keys())
+        for v in g.vertexes:
+            for u in g.vertexes[v]:
+                self.assertEqual(id(u),id(V[V.index(u)]))
 
 
 if __name__ == '__main__':
