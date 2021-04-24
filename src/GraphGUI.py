@@ -1,5 +1,6 @@
 import tkinter as tk
 import numpy as np
+import sys
 from Graph import Graph,GenerateGraph,Vertex,Edge
 from MDSLayout import Parametrs,MDSLayout
 
@@ -422,6 +423,10 @@ class GraphGUI():
 
 
    
+def main():
+    Window=GraphGUI()
 
-Window=GraphGUI()
+
+if __name__ == '__main__': 
+		sys.exit(main())
 
