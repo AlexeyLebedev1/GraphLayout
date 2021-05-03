@@ -495,15 +495,6 @@ class Graph():
     def get_vertex_coverage_number(self):
         return len(self.get_vertexes())-self.get_independence_number()
 
-    #def max_clique(self):
-        #g=~self
-        #return g.get_max_independent_sets()
-
-    #def clique_number(self):
-        #g=~self
-        #return g.get_independence_number()
-
-
 
 class GenerateGraph():
     """Generation of some special graphs of the appropriate dimension"""

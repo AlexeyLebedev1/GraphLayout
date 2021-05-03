@@ -35,7 +35,7 @@ class GraphGUI():
         self.classes_menu.add_command(label='Kp,q',command=lambda name='Kp,q':self.create_input_window1(name))
         self.classes_menu.add_command(label='Cn',command=lambda name='Cn':self.create_input_window1(name))
         self.classes_menu.add_command(label='Pn',command=lambda name='Pn':self.create_input_window1(name))
-        self.classes_menu.add_command(label='On',command=lambda name='On':self.create_input_window1(name))
+        #self.classes_menu.add_command(label='On',command=lambda name='On':self.create_input_window1(name))
         self.classes_menu.add_command(label='Qn',command=lambda name='Qn':self.create_input_window1(name))
         self.main_menu.add_cascade(label='Special graphs',menu=self.classes_menu)
 
@@ -84,26 +84,16 @@ class GraphGUI():
 
             elif name_algo=='Vertex coverage number':
                 print(name_algo+'=',self.graph.get_vertex_coverage_number())
-            #elif name_algo=='Max clique':
-                #S=self.graph.max_clique()
-                #print(name_algo+':')
-                #print(S)
-            #elif name_algo=='Clique number':
-                #print(name_algo+'=',self.graph.clique_number())
+
 
         self.algorithm_menu.add_command(label='Eulerian cycle',command=lambda name='Eulerian cycle':f(name))
         self.algorithm_menu.add_command(label='Hamiltonian cycle',command=lambda name='Hamiltonian cycle':f(name))
-        #self.algorithm_menu.add_command(label='Hamiltonian path',command=lambda name='Hamiltonian path':f(name))
         self.algorithm_menu.add_command(label='Decision tree',command=lambda name='Decision tree':f(name))
         self.algorithm_menu.add_command(label='Max independent sets',command=lambda name='Max independent sets':f(name))
         self.algorithm_menu.add_command(label='Independent number',command=lambda name='Independent number':f(name))
         self.algorithm_menu.add_command(label='Vertex coverage number',command=lambda name='Vertex coverage number':f(name))
-        #self.algorithm_menu.add_command(label='Max clique',command=lambda name='Max clique':f(name))
-        #self.algorithm_menu.add_command(label='Clique number',command=lambda name='Clique number':f(name))
-
 
         self.main_menu.add_cascade(label='Algorithms',menu=self.algorithm_menu)
-
 
         # settings
         self.main_menu.add_command(label="Settings",command=self.create_settings_window)
@@ -271,6 +261,9 @@ class GraphGUI():
         tk.Label(settings_window,text='Edges width: ',bg='white').grid(row=5,column=2,padx=3,pady=3,sticky='W')
         tk.Spinbox(settings_window,from_=1,to=10,textvariable=self.parametrs.edges_width).grid(row=6,column=2,padx=3,pady=3,sticky='W')
 
+        tk.Label(settings_window,text='Layout accuracy: ',bg='white').grid(row=7,column=2,padx=3,pady=3,sticky='W')
+        tk.Entry(settings_window,textvariable=self.parametrs.layout_accuracy).grid(row=8,column=2,padx=3,pady=3,sticky='W')
+
 
         last_c,last_r=settings_window.grid_size()
         tk.Button(settings_window,text='Save',command=settings_window.destroy,
@@ -333,7 +326,7 @@ class GraphGUI():
             tk.Radiobutton(special_graphs_frm,text='Pn',bg='white',variable=type_graph,value='Pn',command=input_n).grid(column=0,row=2,padx=3,pady=3,sticky='W')
             tk.Radiobutton(special_graphs_frm,text='Cn',bg='white',variable=type_graph,value='Cn',command=input_n).grid(column=0,row=3,padx=3,pady=3,sticky='W')
             tk.Radiobutton(special_graphs_frm,text='Qn',bg='white',variable=type_graph,value='Qn',command=input_n).grid(column=0,row=4,padx=3,pady=3,sticky='W')
-            tk.Radiobutton(special_graphs_frm,text='On',bg='white',variable=type_graph,value='On',command=input_n).grid(column=0,row=5,padx=3,pady=3,sticky='W')
+            #tk.Radiobutton(special_graphs_frm,text='On',bg='white',variable=type_graph,value='On',command=input_n).grid(column=0,row=5,padx=3,pady=3,sticky='W')
 
             def save_graph():
                 if type_graph.get()=='Kn':
@@ -374,8 +367,8 @@ class GraphGUI():
             self.graph=graph[i]
 
         tk.Button(operations_window,text='Composition',bg='white',command=composition).grid(column=1,row=0,padx=3,pady=3,sticky='W')
-        tk.Button(operations_window,text='~Graph1',bg='white',command=lambda i=0:inverse(i)).grid(column=1,row=1,padx=3,pady=3,sticky='W')
-        tk.Button(operations_window,text='~Graph2',bg='white',command=lambda i=1:inverse(i)).grid(column=1,row=2,padx=3,pady=3,sticky='W')
+        #tk.Button(operations_window,text='~Graph1',bg='white',command=lambda i=0:inverse(i)).grid(column=1,row=1,padx=3,pady=3,sticky='W')
+        #tk.Button(operations_window,text='~Graph2',bg='white',command=lambda i=1:inverse(i)).grid(column=1,row=2,padx=3,pady=3,sticky='W')
         tk.Button(operations_window,text='Draw',bg='white',command=draw).grid(column=1,row=9,padx=3,pady=3,sticky='W')
 
 

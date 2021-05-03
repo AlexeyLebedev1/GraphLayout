@@ -16,6 +16,7 @@ class Parametrs():
         self.vertex_rad=tk.IntVar(value=5)
         self.edges_length=tk.IntVar(value=100)
         self.edges_width=tk.IntVar(value=1)
+        self.layout_accuracy=tk.DoubleVar(value=0.0001)
 
     def get_vertex_marking(self):
         return self.vertex_marking.get()
@@ -34,7 +35,9 @@ class Parametrs():
 
     def get_edges_width(self):
         return int(self.edges_width.get())
-
+    
+    def get_layout_accuracy(self):
+        return self.layout_accuracy.get()
 
 
 class MDSLayout():
@@ -141,7 +144,7 @@ class MDSLayout():
             for i,v in enumerate(graph.vertexes):
                 new_place=self.stress(v,i,D,W,graph)
                  
-                if abs(new_place-v.pos)<0.0001:
+                if abs(new_place-v.pos)<self.parametrs.get_layout_accuracy():
                     find_place+=1
 
                 v.pos=new_place
